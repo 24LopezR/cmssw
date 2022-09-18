@@ -62,6 +62,9 @@ _endcap_MTDDigitizer = cms.PSet(
     premixStage1MaxCharge = cms.double(1e6),
     DeviceSimulation  = cms.PSet(
         bxTime            = cms.double(25),
+        IntegratedLuminosity = cms.double(1000.),      # [1/fb]
+        FluenceVsRadius      = cms.string("1.937*TMath::Power(x,-1.706)"),
+        LGADGainVsFluence    = cms.string("TMath::Min(15.,30.-x)"),
         tofDelay          = cms.double(1),
         meVPerMIP         = cms.double(0.085), # from HGCal
         ),
@@ -70,7 +73,7 @@ _endcap_MTDDigitizer = cms.PSet(
         IntegratedLuminosity = cms.double(1000.),      # [1/fb]
         FluenceVsRadius      = cms.string("1.937*TMath::Power(x,-1.706)"),
         LGADGainVsFluence    = cms.string("TMath::Min(15.,30.-x)"),
-        TimeResolution2      = cms.string("0.0225/x"), # [ns^2]
+        TimeResolutionJitter = cms.string("0.3/x"), # [ps]
         # n bits for the ADC 
         adcNbits             = cms.uint32(8),
         # n bits for the TDC
@@ -78,9 +81,14 @@ _endcap_MTDDigitizer = cms.PSet(
         # ADC saturation
         adcSaturation_MIP  = cms.double(25),
         # for different thickness
-        adcThreshold_MIP   = cms.double(0.025),
+        adcThreshold_MIP   = cms.double(0.0315123151231512),
+        iThreshold_MIP     = cms.double(0.025),
         # LSB for time of arrival estimate from TDC in ns
-        toaLSB_ns          = cms.double(0.013),
+        toaLSB_ns           = cms.double(0.013),
+        referenceChargeColl = cms.double(0.806705),
+        sigmaJitterBase     = cms.double(0.020),
+        sigmaDistorsion     = cms.double(0.0),
+        sigmaTDC            = cms.double(0.0)
         )
 )
 

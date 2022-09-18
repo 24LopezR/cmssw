@@ -12,6 +12,8 @@
 #include "Geometry/Records/interface/MTDDigiGeometryRecord.h"
 #include "Geometry/MTDGeometryBuilder/interface/MTDGeometry.h"
 
+#include "CommonTools/Utils/interface/FormulaEvaluator.h"
+
 #include <tuple>
 
 namespace CLHEP {
@@ -36,8 +38,13 @@ private:
   const MTDGeometry* geom_;
 
   float MIPPerMeV_;
+  const float integratedLum_;
+  const reco::FormulaEvaluator fluence_;
+  const reco::FormulaEvaluator lgadGain_;
   float bxTime_;
   float tofDelay_;
+
+
 };
 
 #endif

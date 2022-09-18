@@ -16,6 +16,9 @@ ETLDeviceSim::ETLDeviceSim(const edm::ParameterSet& pset, edm::ConsumesCollector
     : geomToken_(iC.esConsumes()),
       geom_(nullptr),
       MIPPerMeV_(1.0 / pset.getParameter<double>("meVPerMIP")),
+      integratedLum_(pset.getParameter<double>("IntegratedLuminosity")),
+      fluence_(pset.getParameter<std::string>("FluenceVsRadius")),
+      lgadGain_(pset.getParameter<std::string>("LGADGainVsFluence")),
       bxTime_(pset.getParameter<double>("bxTime")),
       tofDelay_(pset.getParameter<double>("tofDelay")) {}
 
@@ -26,9 +29,15 @@ void ETLDeviceSim::getHitsResponse(const std::vector<std::tuple<int, uint32_t, f
                                    mtd_digitizer::MTDSimHitDataAccumulator* simHitAccumulator,
                                    CLHEP::HepRandomEngine* hre) {
   using namespace geant_units::operators;
-
+  //std::cout << "--------------------This is a call to getHitsResponse -------------------------" << std::endl;
   //loop over sorted hits
+  std::vector<double> emptyV;
+  std::vector<double> radius(1);
+  std::vector<double> fluence(1);
+  std::vector<double> gain(1);
+
   const int nchits = hitRefs.size();
+  //std::cout << "There is a total of: " << nchits << " hits." << std::endl;
   for (int i = 0; i < nchits; ++i) {
     const int hitidx = std::get<0>(hitRefs[i]);
     const uint32_t id = std::get<1>(hitRefs[i]);
@@ -45,6 +54,8 @@ void ETLDeviceSim::getHitsResponse(const std::vector<std::tuple<int, uint32_t, f
 
     ETLDetId etlid(detId);
     DetId geoId = ETLDetId(etlid.mtdSide(), etlid.mtdRR(), etlid.module(), etlid.modType());
+    //std::cout << "-----------------" << std::endl;
+    //std::cout << "This hit is in MTD Side: " << etlid.mtdSide() << " Disk: " << etlid.mtdRR() << " Module: " << etlid.module() << std::endl;
     const MTDGeomDet* thedet = geom_->idToDet(geoId);
     if (thedet == nullptr) {
       throw cms::Exception("ETLDeviceSim") << "GeographicalID: " << std::hex << geoId.rawId() << " (" << detId.rawId()
@@ -55,20 +66,26 @@ void ETLDeviceSim::getHitsResponse(const std::vector<std::tuple<int, uint32_t, f
 
     const float toa = std::get<2>(hitRefs[i]) + tofDelay_;
     const PSimHit& hit = hits->at(hitidx);
-    const float charge = convertGeVToMeV(hit.energyLoss()) * MIPPerMeV_;
-
+    float charge = convertGeVToMeV(hit.energyLoss()) * MIPPerMeV_;
+    std::cout << "E: " << hit.energyLoss() << " p: " << hit.pabs() << " ch: " << charge << std::endl;
     // calculate the simhit row and column
     const auto& pentry = hit.entryPoint();
     // ETL is already in module-local coordinates so just scale to cm from mm
     Local3DPoint simscaled(convertMmToCm(pentry.x()), convertMmToCm(pentry.y()), convertMmToCm(pentry.z()));
+    const auto& global_point = thedet->toGlobal(simscaled);
+ 
     //The following lines check whether the pixel point is actually out of the active area.
     //If that is the case it simply ignores the point but in the future some more sophisticated function could be applied.
-    if (!topo.isInPixel(simscaled)) {
-      continue;
+    radius[0] = global_point.perp();
+    fluence[0] = integratedLum_ * fluence_.evaluate(radius, emptyV);
+    gain[0] = lgadGain_.evaluate(fluence, emptyV);
+
+    if (topo.isInPixel(simscaled)) {
+      charge *= gain[0];
     }
     const auto& thepixel = topo.pixel(simscaled);
     const uint8_t row(thepixel.first), col(thepixel.second);
-
+    //std::cout << "Row " << (int) row << " " << "Col: " << (int) col << std::endl;
     auto simHitIt =
         simHitAccumulator->emplace(mtd_digitizer::MTDCellId(id, row, col), mtd_digitizer::MTDCellInfo()).first;
 
@@ -80,8 +97,9 @@ void ETLDeviceSim::getHitsResponse(const std::vector<std::tuple<int, uint32_t, f
     // Check if time index is ok and store energy
     if (itime >= (int)simHitIt->second.hit_info[0].size())
       continue;
-
+    //std::cout << "Current charge: " << (simHitIt->second).hit_info[0][itime];
     (simHitIt->second).hit_info[0][itime] += charge;
+    //std::cout << " New charge: " << (simHitIt->second).hit_info[0][itime] << std::endl;
 
     // Store the time of the first SimHit in the right DataFrame bucket
     const float tof = toa - (itime - 9) * bxTime_;

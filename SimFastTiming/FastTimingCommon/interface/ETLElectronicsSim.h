@@ -16,6 +16,9 @@
 #include "Geometry/MTDGeometryBuilder/interface/MTDGeometry.h"
 #include "Geometry/CommonTopologies/interface/PixelTopology.h"
 
+#include "SimFastTiming/FastTimingCommon/interface/ETLPulseShape.h"
+
+
 namespace mtd = mtd_digitizer;
 
 namespace CLHEP {
@@ -51,7 +54,10 @@ private:
   const float integratedLum_;
   const reco::FormulaEvaluator fluence_;
   const reco::FormulaEvaluator lgadGain_;
-  const reco::FormulaEvaluator timeRes2_;
+  const reco::FormulaEvaluator timeResJitter_;
+
+  const ETLPulseShape etlPulseShape_;
+
 
   // adc/tdc bitwidths
   const uint32_t adcNbits_, tdcNbits_;
@@ -61,8 +67,14 @@ private:
   const float adcLSB_MIP_;
   const uint32_t adcBitSaturation_;
   const float adcThreshold_MIP_;
+  const float iThreshold_MIP_;
   const float toaLSB_ns_;
   const uint32_t tdcBitSaturation_;
+  const float referenceChargeColl_;
+  const float sigmaJitterBase_;
+  const float sigmaDistorsion_;
+  const float sigmaTDC_;
+
 };
 
 #endif

@@ -14,22 +14,28 @@ ETLElectronicsSim::ETLElectronicsSim(const edm::ParameterSet& pset, edm::Consume
       integratedLum_(pset.getParameter<double>("IntegratedLuminosity")),
       fluence_(pset.getParameter<std::string>("FluenceVsRadius")),
       lgadGain_(pset.getParameter<std::string>("LGADGainVsFluence")),
-      timeRes2_(pset.getParameter<std::string>("TimeResolution2")),
+      timeResJitter_(pset.getParameter<std::string>("TimeResolutionJitter")),
       adcNbits_(pset.getParameter<uint32_t>("adcNbits")),
       tdcNbits_(pset.getParameter<uint32_t>("tdcNbits")),
       adcSaturation_MIP_(pset.getParameter<double>("adcSaturation_MIP")),
       adcLSB_MIP_(adcSaturation_MIP_ / std::pow(2., adcNbits_)),
       adcBitSaturation_(std::pow(2, adcNbits_) - 1),
       adcThreshold_MIP_(pset.getParameter<double>("adcThreshold_MIP")),
+      iThreshold_MIP_(pset.getParameter<double>("iThreshold_MIP")),
       toaLSB_ns_(pset.getParameter<double>("toaLSB_ns")),
-      tdcBitSaturation_(std::pow(2, tdcNbits_) - 1) {}
+      tdcBitSaturation_(std::pow(2, tdcNbits_) - 1),
+      referenceChargeColl_(pset.getParameter<double>("referenceChargeColl")),
+      sigmaJitterBase_(pset.getParameter<double>("sigmaJitterBase")),
+      sigmaDistorsion_(pset.getParameter<double>("sigmaDistorsion")),
+      sigmaTDC_(pset.getParameter<double>("sigmaTDC")){}
+
 
 void ETLElectronicsSim::getEventSetup(const edm::EventSetup& evs) { geom_ = &evs.getData(geomToken_); }
 
 void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
                             ETLDigiCollection& output,
                             CLHEP::HepRandomEngine* hre) const {
-  MTDSimHitData chargeColl, toa;
+  MTDSimHitData chargeColl, toa1, toa2;
 
   std::vector<double> emptyV;
   std::vector<double> radius(1);
@@ -38,7 +44,8 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
 
   for (MTDSimHitDataAccumulator::const_iterator it = input.begin(); it != input.end(); it++) {
     chargeColl.fill(0.f);
-    toa.fill(0.f);
+    toa1.fill(0.f);
+    toa2.fill(0.f);
 
     ETLDetId detId = it->first.detid_;
     DetId geoId = detId.geographicalId();
@@ -52,11 +59,29 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
     const auto& global_point = thedet->toGlobal(local_point);
 
     for (size_t i = 0; i < it->second.hit_info[0].size(); i++) {
-      if ((it->second).hit_info[0][i] < adcThreshold_MIP_)
+ 
+      if ((it->second).hit_info[0][i] < adcThreshold_MIP_) {
         continue;
+      }
 
       // time of arrival
       float finalToA = (it->second).hit_info[1][i];
+      float finalToC = (it->second).hit_info[1][i];
+      // fill the time and charge arrays
+      const unsigned int ibucket = std::floor(finalToA / bxTime_);
+      if ((i + ibucket) >= chargeColl.size())
+        continue;
+
+      chargeColl[i + ibucket] += (it->second).hit_info[0][i];
+
+      std::array<float, 3> times =
+          etlPulseShape_.timeAtThr(chargeColl[i + ibucket] / referenceChargeColl_, iThreshold_MIP_, iThreshold_MIP_);
+
+      //The signal is below the threshold
+      if(times[0] == 0 && times[1] == 0 && times[2] == 0) continue;
+
+      finalToA += times[0];
+      finalToC += times[2];
 
       // calculate the LGAD gain as a function of the fluence at R = radius
       radius[0] = global_point.perp();
@@ -65,33 +90,43 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
       if (gain[0] <= 0.)
         throw cms::Exception("EtlElectronicsSim") << "Null or negative LGAD gain!" << std::endl;
 
-      // Gaussian smearing of the time of arrival
-      double sigmaToA = sqrt(timeRes2_.evaluate(gain, emptyV));
 
-      if (sigmaToA > 0.)
-        finalToA += CLHEP::RandGaussQ::shoot(hre, 0., sigmaToA);
+      //Calculate the jitter
+      float sigmaJitter = timeResJitter_.evaluate(gain, emptyV);
+      float sigmaDistorsion = sigmaDistorsion_;
+      float sigmaTDC = sigmaTDC_;
+      float sigmaToA = sqrt(sigmaJitter*sigmaJitter + sigmaDistorsion * sigmaDistorsion + sigmaTDC * sigmaTDC); 
 
-      // fill the time and charge arrays
-      const unsigned int ibucket = std::floor(finalToA / bxTime_);
-      if ((i + ibucket) >= chargeColl.size())
-        continue;
+      float smearing1 = 0.0;
+      float smearing2 = 0.0;
+      if (sigmaToA > 0.) {
+        smearing1 = CLHEP::RandGaussQ::shoot(hre, 0., sigmaToA);
+        smearing2 = CLHEP::RandGaussQ::shoot(hre, 0., sigmaToA);
+      }
 
-      chargeColl[i + ibucket] += (it->second).hit_info[0][i];
+      finalToA += smearing1;
+      finalToC += smearing1 + smearing2;
+   
+      std::cout << "Landau: " << finalToA << " " << finalToC - finalToA << std::endl;
 
-      if (toa[i + ibucket] == 0. || (finalToA - ibucket * bxTime_) < toa[i + ibucket])
-        toa[i + ibucket] = finalToA - ibucket * bxTime_;
+      if (toa1[i + ibucket] == 0. || (finalToA - ibucket * bxTime_) < toa1[i + ibucket])
+        toa1[i + ibucket] = finalToA - ibucket * bxTime_;
+      if (toa2[i + ibucket] == 0. || (finalToC - ibucket * bxTime_) < toa2[i + ibucket])
+        toa2[i + ibucket] = finalToC - ibucket * bxTime_;
     }
 
     // run the shaper to create a new data frame
     ETLDataFrame rawDataFrame(it->first.detid_);
-    runTrivialShaper(rawDataFrame, chargeColl, toa, it->first.row_, it->first.column_);
+    //runTrivialShaper(rawDataFrame, chargeColl, toa1, toa2, it->first.row_, it->first.column_);
+    runTrivialShaper(rawDataFrame, chargeColl, toa1, it->first.row_, it->first.column_);
     updateOutput(output, rawDataFrame);
   }
 }
 
 void ETLElectronicsSim::runTrivialShaper(ETLDataFrame& dataFrame,
                                          const mtd::MTDSimHitData& chargeColl,
-                                         const mtd::MTDSimHitData& toa,
+                                         const mtd::MTDSimHitData& toa1,
+                                         //const mtd::MTDSimHitData& toa2,
                                          const uint8_t row,
                                          const uint8_t col) const {
   bool debug = debug_;
@@ -107,9 +142,11 @@ void ETLElectronicsSim::runTrivialShaper(ETLDataFrame& dataFrame,
   for (int it = 0; it < (int)(chargeColl.size()); it++) {
     //brute force saturation, maybe could to better with an exponential like saturation
     const uint32_t adc = std::min((uint32_t)std::floor(chargeColl[it] / adcLSB_MIP_), adcBitSaturation_);
-    const uint32_t tdc_time = std::min((uint32_t)std::floor(toa[it] / toaLSB_ns_), tdcBitSaturation_);
+    const uint32_t tdc_time1 = std::min((uint32_t)std::floor(toa1[it] / toaLSB_ns_), tdcBitSaturation_);
+    //const uint32_t tdc_time2 = std::min((uint32_t)std::floor(toa2[it] / toaLSB_ns_), tdcBitSaturation_);
     ETLSample newSample;
-    newSample.set(chargeColl[it] > adcThreshold_MIP_, false, tdc_time, adc, row, col);
+    //newSample.set(chargeColl[it] > adcThreshold_MIP_, false, tdc_time1, tdc_time2, adc, row, col);
+    newSample.set(chargeColl[it] > adcThreshold_MIP_, false, tdc_time1, adc, row, col);
     dataFrame.setSample(it, newSample);
 
     if (debug)
