@@ -14,7 +14,8 @@ ETLElectronicsSim::ETLElectronicsSim(const edm::ParameterSet& pset, edm::Consume
       integratedLum_(pset.getParameter<double>("IntegratedLuminosity")),
       fluence_(pset.getParameter<std::string>("FluenceVsRadius")),
       lgadGain_(pset.getParameter<std::string>("LGADGainVsFluence")),
-      timeResJitter_(pset.getParameter<std::string>("TimeResolutionJitter")),
+      lgadGainDegradation_(pset.getParameter<std::string>("lgadGainDegradation")),
+      applyDegradation_(pset.getParameter<bool>("applyDegradation")),
       adcNbits_(pset.getParameter<uint32_t>("adcNbits")),
       tdcNbits_(pset.getParameter<uint32_t>("tdcNbits")),
       adcSaturation_MIP_(pset.getParameter<double>("adcSaturation_MIP")),
@@ -25,7 +26,7 @@ ETLElectronicsSim::ETLElectronicsSim(const edm::ParameterSet& pset, edm::Consume
       toaLSB_ns_(pset.getParameter<double>("toaLSB_ns")),
       tdcBitSaturation_(std::pow(2, tdcNbits_) - 1),
       referenceChargeColl_(pset.getParameter<double>("referenceChargeColl")),
-      sigmaJitterBase_(pset.getParameter<double>("sigmaJitterBase")),
+      noiseLevel_(pset.getParameter<double>("noiseLevel")),
       sigmaDistorsion_(pset.getParameter<double>("sigmaDistorsion")),
       sigmaTDC_(pset.getParameter<double>("sigmaTDC")){}
 
@@ -74,6 +75,25 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
 
       chargeColl[i + ibucket] += (it->second).hit_info[0][i];
 
+      //Calculate the jitter
+      float SignalToNoise = etlPulseShape_.maximum() / noiseLevel_;
+      float sigmaJitter1 = etlPulseShape.raiseTime() / SignalToNoise;
+      float sigmaJitter2 = etlPulseShape.fallTime() / SignalToNoise;
+      float sigmaDistorsion = sigmaDistorsion_;
+      float sigmaTDC = sigmaTDC_;
+      float sigmaToA = sqrt(sigmaJitter1*sigmaJitter1 + sigmaDistorsion * sigmaDistorsion + sigmaTDC * sigmaTDC); 
+      float sigmaToC = sqrt(sigmaJitter2*sigmaJitter2 + sigmaDistorsion * sigmaDistorsion + sigmaTDC * sigmaTDC); 
+
+      float smearing1 = 0.0;
+      float smearing2 = 0.0;
+      if (sigmaToA > 0. && sigmaToC) {
+        smearing1 = CLHEP::RandGaussQ::shoot(hre, 0., sigmaToA);
+        smearing2 = CLHEP::RandGaussQ::shoot(hre, 0., sigmaToA);
+      }
+
+      finalToA += smearing1;
+      finalToC += smearing2;
+   
       std::array<float, 3> times =
           etlPulseShape_.timeAtThr(chargeColl[i + ibucket] / referenceChargeColl_, iThreshold_MIP_, iThreshold_MIP_);
 
@@ -83,31 +103,7 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
       finalToA += times[0];
       finalToC += times[2];
 
-      // calculate the LGAD gain as a function of the fluence at R = radius
-      radius[0] = global_point.perp();
-      fluence[0] = integratedLum_ * fluence_.evaluate(radius, emptyV);
-      gain[0] = lgadGain_.evaluate(fluence, emptyV);
-      if (gain[0] <= 0.)
-        throw cms::Exception("EtlElectronicsSim") << "Null or negative LGAD gain!" << std::endl;
-
-
-      //Calculate the jitter
-      float sigmaJitter = timeResJitter_.evaluate(gain, emptyV);
-      float sigmaDistorsion = sigmaDistorsion_;
-      float sigmaTDC = sigmaTDC_;
-      float sigmaToA = sqrt(sigmaJitter*sigmaJitter + sigmaDistorsion * sigmaDistorsion + sigmaTDC * sigmaTDC); 
-
-      float smearing1 = 0.0;
-      float smearing2 = 0.0;
-      if (sigmaToA > 0.) {
-        smearing1 = CLHEP::RandGaussQ::shoot(hre, 0., sigmaToA);
-        smearing2 = CLHEP::RandGaussQ::shoot(hre, 0., sigmaToA);
-      }
-
-      finalToA += smearing1;
-      finalToC += smearing1 + smearing2;
-   
-      std::cout << "Landau: " << finalToA << " " << finalToC - finalToA << std::endl;
+      std::cout << "Landau: " << times[0] << " " << times[2] + smearing2 - times[0] << std::endl;
 
       if (toa1[i + ibucket] == 0. || (finalToA - ibucket * bxTime_) < toa1[i + ibucket])
         toa1[i + ibucket] = finalToA - ibucket * bxTime_;

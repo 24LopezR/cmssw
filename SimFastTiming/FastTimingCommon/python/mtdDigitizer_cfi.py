@@ -65,6 +65,8 @@ _endcap_MTDDigitizer = cms.PSet(
         IntegratedLuminosity = cms.double(1000.),      # [1/fb]
         FluenceVsRadius      = cms.string("1.937*TMath::Power(x,-1.706)"),
         LGADGainVsFluence    = cms.string("TMath::Min(15.,30.-x)"),
+        LGADGainDegradation  = cms.string("TMath::Max(1.0, TMath::Min(x, x + 0.05/0.01 * (x - 1) + y * (1 - x)/0.01))"),
+        applyDegradation = cms.bool(True),
         tofDelay          = cms.double(1),
         meVPerMIP         = cms.double(0.085), # from HGCal
         ),
@@ -73,7 +75,9 @@ _endcap_MTDDigitizer = cms.PSet(
         IntegratedLuminosity = cms.double(1000.),      # [1/fb]
         FluenceVsRadius      = cms.string("1.937*TMath::Power(x,-1.706)"),
         LGADGainVsFluence    = cms.string("TMath::Min(15.,30.-x)"),
-        TimeResolutionJitter = cms.string("0.3/x"), # [ps]
+        LGADGainDegradation  = cms.string("TMath::Max(1.0, TMath::Min(x, x + 0.05/0.01 * (x - 1) + y * (1 - x)/0.01))"),
+        applyDegradation     = cms.bool(True),
+        NoiseLevel           = cms.string("0.1"), 
         # n bits for the ADC 
         adcNbits             = cms.uint32(8),
         # n bits for the TDC

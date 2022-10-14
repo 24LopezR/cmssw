@@ -19,6 +19,8 @@ ETLDeviceSim::ETLDeviceSim(const edm::ParameterSet& pset, edm::ConsumesCollector
       integratedLum_(pset.getParameter<double>("IntegratedLuminosity")),
       fluence_(pset.getParameter<std::string>("FluenceVsRadius")),
       lgadGain_(pset.getParameter<std::string>("LGADGainVsFluence")),
+      lgadGainDegradation_(pset.getParameter<std::string>("LGADGainDegradation")),
+      applyDegradation_(pset.getParameter<bool>("applyDegradation")),
       bxTime_(pset.getParameter<double>("bxTime")),
       tofDelay_(pset.getParameter<double>("tofDelay")) {}
 
@@ -35,6 +37,7 @@ void ETLDeviceSim::getHitsResponse(const std::vector<std::tuple<int, uint32_t, f
   std::vector<double> radius(1);
   std::vector<double> fluence(1);
   std::vector<double> gain(1);
+  std::vector<double> param(2);
 
   const int nchits = hitRefs.size();
   //std::cout << "There is a total of: " << nchits << " hits." << std::endl;
@@ -79,10 +82,19 @@ void ETLDeviceSim::getHitsResponse(const std::vector<std::tuple<int, uint32_t, f
     radius[0] = global_point.perp();
     fluence[0] = integratedLum_ * fluence_.evaluate(radius, emptyV);
     gain[0] = lgadGain_.evaluate(fluence, emptyV);
-
+    
     if (topo.isInPixel(simscaled)) {
-      charge *= gain[0];
+          charge *= gain[0];
+    } else {
+        if(applyDegradation_) {
+            double dGapCenter = TMath::Max(TMath::Abs(simscaled.x()), TMath::Abs(simscaled.y()));
+            param[0] = gain[0];
+            param[1] = dGapCenter;
+            gain[0] = lgadGainDegradation_.evaluate(param, emptyV);
+            charge *= gain[0];
+        }
     }
+
     const auto& thepixel = topo.pixel(simscaled);
     const uint8_t row(thepixel.first), col(thepixel.second);
     //std::cout << "Row " << (int) row << " " << "Col: " << (int) col << std::endl;

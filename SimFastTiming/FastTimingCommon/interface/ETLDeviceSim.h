@@ -41,6 +41,8 @@ private:
   const float integratedLum_;
   const reco::FormulaEvaluator fluence_;
   const reco::FormulaEvaluator lgadGain_;
+  const reco::FormulaEvaluator lgadGainDegradation_;
+  const bool applyDegradation_;
   float bxTime_;
   float tofDelay_;
 

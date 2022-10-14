@@ -54,7 +54,8 @@ private:
   const float integratedLum_;
   const reco::FormulaEvaluator fluence_;
   const reco::FormulaEvaluator lgadGain_;
-  const reco::FormulaEvaluator timeResJitter_;
+  const reco::FormulaEvaluator lgadGainDegradation_;
+  const bool applyDegradation_;
 
   const ETLPulseShape etlPulseShape_;
 
@@ -71,7 +72,7 @@ private:
   const float toaLSB_ns_;
   const uint32_t tdcBitSaturation_;
   const float referenceChargeColl_;
-  const float sigmaJitterBase_;
+  const float noiseLevel_;
   const float sigmaDistorsion_;
   const float sigmaTDC_;
 
