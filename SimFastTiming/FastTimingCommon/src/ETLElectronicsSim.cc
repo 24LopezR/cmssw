@@ -12,10 +12,10 @@ ETLElectronicsSim::ETLElectronicsSim(const edm::ParameterSet& pset, edm::Consume
       debug_(pset.getUntrackedParameter<bool>("debug", false)),
       bxTime_(pset.getParameter<double>("bxTime")),
       integratedLum_(pset.getParameter<double>("IntegratedLuminosity")),
-      fluence_(pset.getParameter<std::string>("FluenceVsRadius")),
-      lgadGain_(pset.getParameter<std::string>("LGADGainVsFluence")),
-      lgadGainDegradation_(pset.getParameter<std::string>("lgadGainDegradation")),
-      applyDegradation_(pset.getParameter<bool>("applyDegradation")),
+      //fluence_(pset.getParameter<std::string>("FluenceVsRadius")),
+      //lgadGain_(pset.getParameter<std::string>("LGADGainVsFluence")),
+      //lgadGainDegradation_(pset.getParameter<std::string>("LGADGainDegradation")),
+      //applyDegradation_(pset.getParameter<bool>("applyDegradation")),
       adcNbits_(pset.getParameter<uint32_t>("adcNbits")),
       tdcNbits_(pset.getParameter<uint32_t>("tdcNbits")),
       adcSaturation_MIP_(pset.getParameter<double>("adcSaturation_MIP")),
@@ -41,7 +41,6 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
   std::vector<double> emptyV;
   std::vector<double> radius(1);
   std::vector<double> fluence(1);
-  std::vector<double> gain(1);
 
   for (MTDSimHitDataAccumulator::const_iterator it = input.begin(); it != input.end(); it++) {
     chargeColl.fill(0.f);
@@ -60,7 +59,6 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
     const auto& global_point = thedet->toGlobal(local_point);
 
     for (size_t i = 0; i < it->second.hit_info[0].size(); i++) {
- 
       if ((it->second).hit_info[0][i] < adcThreshold_MIP_) {
         continue;
       }
@@ -68,6 +66,8 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
       // time of arrival
       float finalToA = (it->second).hit_info[1][i];
       float finalToC = (it->second).hit_info[1][i];
+      float originalToA = finalToA;
+      float originalToC = finalToC;
       // fill the time and charge arrays
       const unsigned int ibucket = std::floor(finalToA / bxTime_);
       if ((i + ibucket) >= chargeColl.size())
@@ -76,21 +76,24 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
       chargeColl[i + ibucket] += (it->second).hit_info[0][i];
 
       //Calculate the jitter
-      float SignalToNoise = etlPulseShape_.maximum() / noiseLevel_;
-      float sigmaJitter1 = etlPulseShape.raiseTime() / SignalToNoise;
-      float sigmaJitter2 = etlPulseShape.fallTime() / SignalToNoise;
+      float SignalToNoise = etlPulseShape_.maximum() * (chargeColl[i + ibucket] / referenceChargeColl_) / noiseLevel_;
+      float sigmaJitter1 = etlPulseShape_.timeOfMax() / SignalToNoise;
+      float sigmaJitter2 = (etlPulseShape_.fallTime() - etlPulseShape_.timeOfMax()) / SignalToNoise;
+      //Calculate the distorsion
       float sigmaDistorsion = sigmaDistorsion_;
+      //Calculate the TDC
       float sigmaTDC = sigmaTDC_;
+
       float sigmaToA = sqrt(sigmaJitter1*sigmaJitter1 + sigmaDistorsion * sigmaDistorsion + sigmaTDC * sigmaTDC); 
       float sigmaToC = sqrt(sigmaJitter2*sigmaJitter2 + sigmaDistorsion * sigmaDistorsion + sigmaTDC * sigmaTDC); 
 
       float smearing1 = 0.0;
       float smearing2 = 0.0;
-      if (sigmaToA > 0. && sigmaToC) {
+      if (sigmaToA > 0. && sigmaToC > 0.) {
         smearing1 = CLHEP::RandGaussQ::shoot(hre, 0., sigmaToA);
-        smearing2 = CLHEP::RandGaussQ::shoot(hre, 0., sigmaToA);
+        smearing2 = CLHEP::RandGaussQ::shoot(hre, 0., sigmaToC);
       }
-
+      
       finalToA += smearing1;
       finalToC += smearing2;
    
@@ -98,12 +101,13 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
           etlPulseShape_.timeAtThr(chargeColl[i + ibucket] / referenceChargeColl_, iThreshold_MIP_, iThreshold_MIP_);
 
       //The signal is below the threshold
-      if(times[0] == 0 && times[1] == 0 && times[2] == 0) continue;
-
+      if(times[0] == 0 && times[1] == 0 && times[2] == 0) {
+          continue;
+      }
       finalToA += times[0];
       finalToC += times[2];
 
-      std::cout << "Landau: " << times[0] << " " << times[2] + smearing2 - times[0] << std::endl;
+      //std::cout << "Landau: " << originalToA << " " << originalToC << " " << finalToA << " " << finalToC << " " << smearing1 << " " << smearing2 << " " << sigmaJitter1 << " " << sigmaJitter2 << std::endl;
 
       if (toa1[i + ibucket] == 0. || (finalToA - ibucket * bxTime_) < toa1[i + ibucket])
         toa1[i + ibucket] = finalToA - ibucket * bxTime_;
