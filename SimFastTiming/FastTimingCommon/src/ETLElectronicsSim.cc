@@ -117,8 +117,8 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
 
     // run the shaper to create a new data frame
     ETLDataFrame rawDataFrame(it->first.detid_);
-    //runTrivialShaper(rawDataFrame, chargeColl, toa1, toa2, it->first.row_, it->first.column_);
-    runTrivialShaper(rawDataFrame, chargeColl, toa1, it->first.row_, it->first.column_);
+    runTrivialShaper(rawDataFrame, chargeColl, toa1, toa2, it->first.row_, it->first.column_);
+    //runTrivialShaper(rawDataFrame, chargeColl, toa1, it->first.row_, it->first.column_);
     updateOutput(output, rawDataFrame);
   }
 }
@@ -126,7 +126,7 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
 void ETLElectronicsSim::runTrivialShaper(ETLDataFrame& dataFrame,
                                          const mtd::MTDSimHitData& chargeColl,
                                          const mtd::MTDSimHitData& toa1,
-                                         //const mtd::MTDSimHitData& toa2,
+                                         const mtd::MTDSimHitData& toa2,
                                          const uint8_t row,
                                          const uint8_t col) const {
   bool debug = debug_;
@@ -143,10 +143,10 @@ void ETLElectronicsSim::runTrivialShaper(ETLDataFrame& dataFrame,
     //brute force saturation, maybe could to better with an exponential like saturation
     const uint32_t adc = std::min((uint32_t)std::floor(chargeColl[it] / adcLSB_MIP_), adcBitSaturation_);
     const uint32_t tdc_time1 = std::min((uint32_t)std::floor(toa1[it] / toaLSB_ns_), tdcBitSaturation_);
-    //const uint32_t tdc_time2 = std::min((uint32_t)std::floor(toa2[it] / toaLSB_ns_), tdcBitSaturation_);
+    const uint32_t tdc_time2 = std::min((uint32_t)std::floor(toa2[it] / toaLSB_ns_), tdcBitSaturation_);
     ETLSample newSample;
-    //newSample.set(chargeColl[it] > adcThreshold_MIP_, false, tdc_time1, tdc_time2, adc, row, col);
-    newSample.set(chargeColl[it] > adcThreshold_MIP_, false, tdc_time1, adc, row, col);
+    newSample.set(chargeColl[it] > adcThreshold_MIP_, false, tdc_time1, tdc_time2, adc, row, col);
+    //newSample.set(chargeColl[it] > adcThreshold_MIP_, false, tdc_time1, adc, row, col);
     dataFrame.setSample(it, newSample);
 
     if (debug)
