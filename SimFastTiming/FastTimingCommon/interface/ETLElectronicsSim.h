@@ -38,6 +38,7 @@ public:
   void runTrivialShaper(ETLDataFrame& dataFrame,
                         const mtd::MTDSimHitData& chargeColl,
                         const mtd::MTDSimHitData& toa,
+                        const mtd::MTDSimHitData& toa2,
                         const uint8_t row,
                         const uint8_t column) const;
 

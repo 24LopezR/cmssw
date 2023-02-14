@@ -27,15 +27,15 @@ public:
     kDataShift = 0
   };
 
-  enum ETLSamplePixelMasks { kColumnMask = 0xf, kRowMask = 0xf }
-  enum ETLSamplePixelShifts { kColumnShift = 0, kRowShift = 4 }
+  enum ETLSamplePixelMasks { kColumnMask = 0xf, kRowMask = 0xf };
+  enum ETLSamplePixelShifts { kColumnShift = 0, kRowShift = 4 };
 
   /**
      @short CTOR
    */
-  ETLSample() : value_(0) {}
+  ETLSample() : value_(0), pixel_(0) {}
   ETLSample(uint32_t value, uint8_t pixel) : value_(value), pixel_(pixel) {}
-  ETLSample(const ETLSample& o) : value_(o.value_), pixel_(o.pixel) {}
+  ETLSample(const ETLSample& o) : value_(o.value_), pixel_(o.pixel_) {}
 
   /**
      @short setters
@@ -59,7 +59,7 @@ public:
   void print(std::ostream& out = std::cout) {
     out << "(row,col) : (" << row() << ',' << column() << ") "
         << "THR: " << threshold() << " Mode: " << mode() << " ToA: " << toa() << " ToC: " << toc() << " Data: " << data() << " Raw=0x"
-        << std::hex << raw() << std::dec << std::endl;
+        << std::hex << raw_pixel() << std::dec << " Raw Data=0x" << std::hex << raw_data() << std::dec << std::endl;
   }
 
   /**
