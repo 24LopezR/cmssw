@@ -107,7 +107,7 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
       finalToA += times[0];
       finalToC += times[2];
 
-      //std::cout << "Landau: " << originalToA << " " << originalToC << " " << finalToA << " " << finalToC << " " << smearing1 << " " << smearing2 << " " << sigmaJitter1 << " " << sigmaJitter2 << std::endl;
+      std::cout << "Landau: " << originalToA << " " << originalToC << " " << finalToA << " " << finalToC << " " << smearing1 << " " << smearing2 << " " << sigmaJitter1 << " " << sigmaJitter2 << std::endl;
 
       if (toa1[i + ibucket] == 0. || (finalToA - ibucket * bxTime_) < toa1[i + ibucket])
         toa1[i + ibucket] = finalToA - ibucket * bxTime_;
@@ -147,6 +147,10 @@ void ETLElectronicsSim::runTrivialShaper(ETLDataFrame& dataFrame,
     ETLSample newSample;
     newSample.set(chargeColl[it] > adcThreshold_MIP_, false, tdc_time1, tdc_time2, adc, row, col);
     //newSample.set(chargeColl[it] > adcThreshold_MIP_, false, tdc_time1, adc, row, col);
+    if (chargeColl[it] > adcThreshold_MIP_) {
+      std::cout << "tdc_time1 = " << tdc_time1 << ", tdc_time2 = " << tdc_time2 << std::endl;
+      newSample.print();
+    }
     dataFrame.setSample(it, newSample);
 
     if (debug)
