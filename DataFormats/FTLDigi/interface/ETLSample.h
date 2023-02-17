@@ -52,7 +52,7 @@ public:
     col_ =   col;
   }
   void print(std::ostream& out = std::cout) {
-    out << "(row,col) : (" << (int)row() << ',' << (int)column() << ") "
+    out << "( row col ) : ( " << (int)row() << ' ' << (int)column() << " ) "
         << "THR: " << threshold() << " Mode: " << mode() << " ToA: " << toa() << " ToC: " << toc() << " Data: " << data() << " Raw Data=0x" << std::hex << raw_data() << std::dec << std::endl;
   }
 

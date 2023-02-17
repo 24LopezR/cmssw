@@ -17,7 +17,8 @@ public:
         timeError_(conf.getParameter<std::string>("timeResolutionInNs")),
         timeCorr_p0_(conf.getParameter<double>("timeCorr_p0")),
         timeCorr_p1_(conf.getParameter<double>("timeCorr_p1")),
-        timeCorr_p2_(conf.getParameter<double>("timeCorr_p2")) {}
+        timeCorr_p2_(conf.getParameter<double>("timeCorr_p2")),
+        timeCorr_p3_(conf.getParameter<double>("timeCorr_p3")) {}
 
   /// Destructor
   ~ETLUncalibRecHitAlgo() override {}
@@ -40,6 +41,7 @@ private:
   const double timeCorr_p0_;
   const double timeCorr_p1_;
   const double timeCorr_p2_;
+  const double timeCorr_p3_;
 };
 
 FTLUncalibratedRecHit ETLUncalibRecHitAlgo::makeRecHit(const ETLDataFrame& dataFrame) const {
@@ -50,16 +52,18 @@ FTLUncalibratedRecHit ETLUncalibRecHitAlgo::makeRecHit(const ETLDataFrame& dataF
   std::pair<float, float> time(0., 0.);
 
   amplitude.first = double(sample.data()) * adcLSB_;
-  double time_of_arrival = double(sample.toa()) * toaLSBToNS_ - tofDelay_;
-  double time_of_crossing = double(sample.toc()) * toaLSBToNS_ - tofDelay_;
+  double time_of_arrival = double(sample.toa()) * toaLSBToNS_;// - tofDelay_;
+  double time_of_crossing = double(sample.toc()) * toaLSBToNS_;// - tofDelay_;
   double time_over_threshold = time_of_crossing - time_of_arrival;
   unsigned char flag = 0;
 
   // Time-walk correction for toa
-  time.first -= timeCorr_p0_ * pow(time_over_threshold, timeCorr_p1_) + timeCorr_p2_;
+  time.first = time_of_arrival;
+  double timeWalkCorr = timeCorr_p0_ + timeCorr_p1_ * time_over_threshold + timeCorr_p2_ * time_over_threshold * time_over_threshold + timeCorr_p3_ * time_over_threshold * time_over_threshold * time_over_threshold;
+  time.first -= timeWalkCorr;
   flag |= 0x1;
   //std::cout << "id            " << dataFrame.id() << std::endl;
-  std::cout << "makeRecHit: " << sample.toa() << " " << time_of_arrival << " " << sample.toc() << " " << time_of_crossing << " " << time.first << std::endl;
+  std::cout << "makeRecHit: " << sample.toa() << " " << time_of_arrival << " " << sample.toc() << " " << time_of_crossing << " " << time_over_threshold << " "  << time.first << " " << timeWalkCorr << " " << (int)sample.row() << " " << (int)sample.column() << std::endl;
 
   //LogDebug("ETLUncalibRecHit") << "ADC+: set the charge to: " << amplitude.first << ' ' << sample.data() << ' ' << adcLSB_
   //                             << ' ' << std::endl;
