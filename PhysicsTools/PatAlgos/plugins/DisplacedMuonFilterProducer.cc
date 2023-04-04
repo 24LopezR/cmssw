@@ -158,7 +158,6 @@ void pat::DisplacedMuonFilterProducer::produce(edm::Event& iEvent, const edm::Ev
   std::vector<bool> filteredmuons(nMuons, true);
   int oMuons = nMuons;
 
-  std::cout << "begin loop. minMatches = " << minMatches_ << std::endl;
   unsigned int nsegments = 0;
   for (unsigned int i = 0; i < srcMuons->size(); i++) {
     const reco::Muon& muon(srcMuons->at(i));
@@ -182,7 +181,6 @@ void pat::DisplacedMuonFilterProducer::produce(edm::Event& iEvent, const edm::Ev
             nsegments++;
           }
         }
-        std::cout << "nsegments: " << nsegments << std::endl;
         // Discard STA-only muons with less than minMatches_ segments and below pt threshold
         if (nsegments < minMatches_ || muon.standAloneMuon()->pt() < minPtSTA_) {
           filteredmuons[i] = false;
