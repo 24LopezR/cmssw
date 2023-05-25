@@ -78,8 +78,8 @@
     <Constant name="DeltaX_Service6_Service7" value="280.65*mm"/>  <!-- DeltaX + ServiceHybrid_X6/2 + ServiceHybrid_X7/2 -->
     <Constant name="PowerBoard_Z" value="4*mm"/>
     <Constant name="servicesServiceHybrid_Z" value="2*mm"/>
-    <Constant name="LGADdy" value="21.2*mm"/>
-    <Constant name="LGADdx" value="42*mm"/>
+    <Constant name="LGADdy" value="21.2*mm"/> <!-- 16 pixels of 1.3 mm -->
+    <Constant name="LGADdx" value="21.2*mm"/> <!-- 16 pixels of 1.3 mm -->
     <Constant name="EModule_Timingactive" value="0.05*mm"/>
     <Constant name="LGAD_Substrate" value="0.25*mm"/>
     <Constant name="LGAD_Z" value="0.3*mm"/>
@@ -104,6 +104,7 @@
     <Constant name="AlN_Base_Z" value="1.5*mm"/>
     <Constant name="LairdFilm_Z" value="0.08*mm"/>
     <Constant name="ETROC_translation_x" value="10.45*mm"/>
+    <Constant name="LGAD_translation_x" value="10.85*mm"/> <!-- 0.5*(LGADdx + lgadSep_X) -->
     <Constant name="LairdFilm_translation_y" value="1.7*mm"/>
     <Constant name="ETROC_translation_y" value="1.625*mm"/>
     <Constant name="LGAD_translation_y" value="2.2*mm"/>
@@ -816,12 +817,22 @@
     <PosPart copyNumber="1">
       <rParent name="etl:SensorModule_Front_Right"/>
       <rChild name="etl:glueLGAD"/>
-      <Translation x="0.*mm" y="-1*[LGAD_translation_y]" z="[glueLGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[glueLGAD_translation_z]" />
+    </PosPart>
+    <PosPart copyNumber="2">
+      <rParent name="etl:SensorModule_Front_Right"/>
+      <rChild name="etl:glueLGAD"/>
+      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[glueLGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:SensorModule_Front_Right"/>
       <rChild name="etl:BumpBonds"/>
-      <Translation x="0.*mm" y="-1*[LGAD_translation_y]" z="[bumpBonds_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[bumpBonds_translation_z]" />
+    </PosPart>
+    <PosPart copyNumber="2">
+      <rParent name="etl:SensorModule_Front_Right"/>
+      <rChild name="etl:BumpBonds"/>
+      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[bumpBonds_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:SensorModule_Front_Right"/>
@@ -871,7 +882,12 @@
     <PosPart copyNumber="1">
       <rParent name="etl:SensorModule_Front_Right"/>
       <rChild name="etl:LGAD"/>
-      <Translation x="0.*mm" y="-1*[LGAD_translation_y]" z="[LGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[LGAD_translation_z]" />
+    </PosPart>
+    <PosPart copyNumber="2">
+      <rParent name="etl:SensorModule_Front_Right"/>
+      <rChild name="etl:LGAD"/>
+      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[LGAD_translation_z]" />
     </PosPart>
     <!-- definition of LGAD active/substrate volumes -->
     <PosPart copyNumber="1">
@@ -904,12 +920,22 @@
     <PosPart copyNumber="1">
       <rParent name="etl:SensorModule_Front_Left"/>
       <rChild name="etl:glueLGAD"/>
-      <Translation x="0.*mm" y="[LGAD_translation_y]" z="[glueLGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="[glueLGAD_translation_z]" />
+    </PosPart>
+    <PosPart copyNumber="2">
+      <rParent name="etl:SensorModule_Front_Left"/>
+      <rChild name="etl:glueLGAD"/>
+      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="[glueLGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:SensorModule_Front_Left"/>
       <rChild name="etl:BumpBonds"/>
-      <Translation x="0.*mm" y="[LGAD_translation_y]" z="[bumpBonds_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="[bumpBonds_translation_z]" />
+    </PosPart>
+    <PosPart copyNumber="2">
+      <rParent name="etl:SensorModule_Front_Left"/>
+      <rChild name="etl:BumpBonds"/>
+      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="[bumpBonds_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:SensorModule_Front_Left"/>
@@ -959,9 +985,13 @@
     <PosPart copyNumber="1">
       <rParent name="etl:SensorModule_Front_Left"/>
       <rChild name="etl:LGAD"/>
-      <Translation x="0.*mm" y="[LGAD_translation_y]" z="[LGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="[LGAD_translation_z]" />
     </PosPart>
-
+    <PosPart copyNumber="2">
+      <rParent name="etl:SensorModule_Front_Left"/>
+      <rChild name="etl:LGAD"/>
+      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="[LGAD_translation_z]" />
+    </PosPart>
 
     <!-- Elements composing SensorModule_Back_Left -->
     <PosPart copyNumber="1">
@@ -982,12 +1012,22 @@
     <PosPart copyNumber="1">
       <rParent name="etl:SensorModule_Back_Left"/>
       <rChild name="etl:glueLGAD"/>
-      <Translation x="0.*mm" y="-1*[LGAD_translation_y]" z="-1*[glueLGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[glueLGAD_translation_z]" />
+    </PosPart>
+    <PosPart copyNumber="2">
+      <rParent name="etl:SensorModule_Back_Left"/>
+      <rChild name="etl:glueLGAD"/>
+      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[glueLGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:SensorModule_Back_Left"/>
       <rChild name="etl:BumpBonds"/>
-      <Translation x="0.*mm" y="-1*[LGAD_translation_y]" z="-1*[bumpBonds_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[bumpBonds_translation_z]" />
+    </PosPart>
+    <PosPart copyNumber="2">
+      <rParent name="etl:SensorModule_Back_Left"/>
+      <rChild name="etl:BumpBonds"/>
+      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[bumpBonds_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:SensorModule_Back_Left"/>
@@ -1038,7 +1078,13 @@
       <rParent name="etl:SensorModule_Back_Left"/>
       <rChild name="etl:LGAD"/>
       <rRotation name="rotations:RPCD" />
-      <Translation x="0.*mm" y="-1*[LGAD_translation_y]" z="-1*[LGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[LGAD_translation_z]" />
+    </PosPart>
+    <PosPart copyNumber="2">
+      <rParent name="etl:SensorModule_Back_Left"/>
+      <rChild name="etl:LGAD"/>
+      <rRotation name="rotations:RPCD" />
+      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[LGAD_translation_z]" />
     </PosPart>
     
 
@@ -1062,12 +1108,22 @@
     <PosPart copyNumber="1">
       <rParent name="etl:SensorModule_Back_Right"/>
       <rChild name="etl:glueLGAD"/>
-      <Translation x="0.*mm" y="[LGAD_translation_y]" z="-1*[glueLGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[glueLGAD_translation_z]" />
+    </PosPart>
+    <PosPart copyNumber="2">
+      <rParent name="etl:SensorModule_Back_Right"/>
+      <rChild name="etl:glueLGAD"/>
+      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[glueLGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:SensorModule_Back_Right"/>
       <rChild name="etl:BumpBonds"/>
-      <Translation x="0.*mm" y="[LGAD_translation_y]" z="-1*[bumpBonds_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[bumpBonds_translation_z]" />
+    </PosPart>
+    <PosPart copyNumber="2">
+      <rParent name="etl:SensorModule_Back_Right"/>
+      <rChild name="etl:BumpBonds"/>
+      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[bumpBonds_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:SensorModule_Back_Right"/>
@@ -1118,7 +1174,13 @@
       <rParent name="etl:SensorModule_Back_Right"/>
       <rChild name="etl:LGAD"/>
       <rRotation name="rotations:RPCD" />
-      <Translation x="0.*mm" y="[LGAD_translation_y]" z="-1*[LGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[LGAD_translation_z]" />
+    </PosPart>
+    <PosPart copyNumber="2">
+      <rParent name="etl:SensorModule_Back_Right"/>
+      <rChild name="etl:LGAD"/>
+      <rRotation name="rotations:RPCD" />
+      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[LGAD_translation_z]" />
     </PosPart>
   </PosPartSection>
     
