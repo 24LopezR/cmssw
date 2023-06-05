@@ -183,6 +183,7 @@ void CmsMTDConstruction<DDFilteredView>::buildETLModule(DDFilteredView& fv, Geom
   } else {
     const auto& copyNumbers = fv.copyNumbers();
     auto module_number = copyNumbers[copyNumbers.size() - 2];
+    auto sensor_number = copyNumbers[copyNumbers.size() - 3];
 
     size_t delim_ring = det->name().find("EModule");
     size_t delim_disc = det->name().find("Disc");
@@ -192,7 +193,7 @@ void CmsMTDConstruction<DDFilteredView>::buildETLModule(DDFilteredView& fv, Geom
     const uint32_t side = det->translation().z() > 0 ? 1 : 0;
 
     // label geographic detid is front or back (even though it is one module per entry here)
-    det->setGeographicalID(ETLDetId(side, atoi(ringN.c_str()), module_number, 0));
+    det->setGeographicalID(ETLDetId(side, atoi(ringN.c_str()), module_number, 0, sensor_number));
   }
 
   mother->addComponent(det);
@@ -231,7 +232,7 @@ GeometricTimingDet* CmsMTDConstruction<FilteredView>::buildSubdet(FilteredView& 
     subdet->setGeographicalID(BTLDetId(0, 0, 0, 0, 0));
   } else if (thisDet == GeometricTimingDet::ETL) {
     const uint32_t side = subdet->translation().z() > 0 ? 1 : 0;
-    subdet->setGeographicalID(ETLDetId(side, 0, 0, 0));
+    subdet->setGeographicalID(ETLDetId(side, 0, 0, 0, 0));
   } else {
     throw cms::Exception("CmsMTDConstruction") << " ERROR - I was expecting a SubDet, I got a " << fv.name();
   }

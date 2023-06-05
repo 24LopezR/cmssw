@@ -37,6 +37,7 @@ uint32_t ETLNumberingScheme::getUnitID(const MTDBaseNumber& baseNumber) const {
   const bool preTDR = (baseNumber.getLevelName(3).find("Ring") != std::string::npos);
 
   const uint32_t modCopy(baseNumber.getCopyNumber(2));
+  const uint32_t sensor(baseNumber.getCopyNumber(1));
 
   const std::string_view& ringName(baseNumber.getLevelName(3));  // name of ring volume
   int modtyp(0);
@@ -102,16 +103,17 @@ uint32_t ETLNumberingScheme::getUnitID(const MTDBaseNumber& baseNumber) const {
 
   // all inputs are fine. Go ahead and decode
 
-  ETLDetId thisETLdetid(zside, ringCopy, modCopy, modtyp);
+  ETLDetId thisETLdetid(zside, ringCopy, modCopy, modtyp, sensor);
   const uint32_t intindex = thisETLdetid.rawId();
 
 #ifdef EDM_ML_DEBUG
   edm::LogInfo("MTDGeom") << "ETL Numbering scheme: "
                           << " ring = " << ringCopy << " zside = " << zside << " module = " << modCopy
-                          << " modtyp = " << modtyp << " Raw Id = " << intindex << thisETLdetid;
+                          << " modtyp = " << modtyp << " sensor = " << sensor 
+                          << " Raw Id = " << intindex << thisETLdetid;
 #endif
   if (!preTDR) {
-    ETLDetId altETLdetid(zside, discN, sectorS, sectorN, modCopy, modtyp);
+    ETLDetId altETLdetid(zside, discN, sectorS, sectorN, modCopy, modtyp, sensor);
     const uint32_t altintindex = altETLdetid.rawId();
     if (intindex != altintindex) {
       edm::LogWarning("MTDGeom") << "Incorrect alternative construction \n"
