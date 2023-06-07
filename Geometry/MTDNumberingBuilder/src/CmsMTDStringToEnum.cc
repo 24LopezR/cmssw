@@ -15,7 +15,8 @@ CmsMTDStringToEnum::Impl::Impl() {
   map_.emplace("Disc1", GeometricTimingDet::ETLDisc);
   map_.emplace("Disc1Timing", GeometricTimingDet::ETLDisc);
   map_.emplace("Disc2Timing", GeometricTimingDet::ETLDisc);
-  map_.emplace("EModule", GeometricTimingDet::ETLModule);
+  map_.emplace("SensorM", GeometricTimingDet::ETLModule);
+  map_.emplace("EModule", GeometricTimingDet::ETLSensor);
 }
 
 GeometricTimingDet::GeometricTimingEnumType CmsMTDStringToEnum::type(std::string const& s) const {

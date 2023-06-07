@@ -67,11 +67,6 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
                                        "AlN",
                                        "LairdFilm",
                                        "ETROC",
-                                       "SensorModule",
-                                       "SensorModule_Front_Left",
-                                       "SensorModule_Front_Right",
-                                       "SensorModule_Back_Left",
-                                       "SensorModule_Back_Right",
                                        "DiscSector",
                                        "LGAD_Substrate",
                                        "ConcentratorCard",
@@ -129,6 +124,9 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
   std::vector<GeometricTimingDet*> subdet;
   std::vector<GeometricTimingDet*> layer;
 
+#ifdef EDM_ML_DEBUG
+  edm::LogInfo("MTDNumbering") << ":rlopezru: " << GeometricTimingDet::ETLModule << " " << GeometricTimingDet::ETLSensor;
+#endif
   do {
     GeometricTimingDet::GeometricTimingEnumType fullNode = theCmsMTDStringToEnum.type(fv.name());
     GeometricTimingDet::GeometricTimingEnumType thisNode =
@@ -136,8 +134,11 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
     size_t num = fv.geoHistory().size();
 
 #ifdef EDM_ML_DEBUG
-    edm::LogVerbatim("MTDNumbering") << "Module = " << fv.name() << " fullNode = " << fullNode
+    if ((thisNode >= 7 && thisNode < 50) || (fullNode >= 7 && fullNode < 50)) {
+      edm::LogVerbatim("MTDNumbering") << ":rlopezru: " << "GeoHist size = " << num;
+      edm::LogVerbatim("MTDNumbering") << ":rlopezru: " << "Module = " << fv.name() << " fullNode = " << fullNode
                                      << " thisNode = " << thisNode;
+    }
 #endif
 
     if (fullNode == GeometricTimingDet::BTL || fullNode == GeometricTimingDet::ETL) {
@@ -171,16 +172,16 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
         limit = num + 1;
       }
     }
-    if (num != limit && limit > 0) {
-      continue;
-    }
+    //if (num != limit && limit > 0) {
+    //  continue;
+    //}
     if (thisNode == GeometricTimingDet::BTLModule) {
 #ifdef EDM_ML_DEBUG
       edm::LogVerbatim("MTDNumbering") << "Registered in GeometricTimingDet as type " << thisNode;
 #endif
       theCmsMTDConstruction.buildBTLModule(fv, layer.back());
       limit = num;
-    } else if (thisNode == GeometricTimingDet::ETLModule) {
+    } else if (thisNode == GeometricTimingDet::ETLSensor) {
 #ifdef EDM_ML_DEBUG
       edm::LogVerbatim("MTDNumbering") << "Registered in GeometricTimingDet as type " << thisNode;
 #endif

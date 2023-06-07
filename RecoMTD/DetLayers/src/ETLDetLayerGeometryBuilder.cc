@@ -82,7 +82,7 @@ MTDRingForwardDoubleLayer* ETLDetLayerGeometryBuilder::buildLayer(int endcap,
   for (unsigned ring : rings) {
     vector<const GeomDet*> frontGeomDets, backGeomDets;
     for (unsigned module = 1; module <= ETLDetId::kETLmoduleMask; ++module) {
-      ETLDetId detId(endcap, ring, module, 0);
+      ETLDetId detId(endcap, ring, module, 0, 0);
       const GeomDet* geomDet = geo.idToDet(detId);
       // we sometimes loop over more chambers than there are in ring
       bool isInFront = isFront(layer, ring, module);
@@ -92,7 +92,7 @@ MTDRingForwardDoubleLayer* ETLDetLayerGeometryBuilder::buildLayer(int endcap,
         } else {
           backGeomDets.push_back(geomDet);
         }
-        LogTrace("MTDDetLayers") << "get ETL module " << std::hex << ETLDetId(endcap, layer, ring, module).rawId()
+        LogTrace("MTDDetLayers") << "get ETL module " << std::hex << ETLDetId(endcap, layer, ring, module, 0).rawId()
                                  << std::dec << " at R=" << geomDet->position().perp()
                                  << ", phi=" << geomDet->position().phi() << ", z= " << geomDet->position().z()
                                  << " isFront? " << isInFront;

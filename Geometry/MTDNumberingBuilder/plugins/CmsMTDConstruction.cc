@@ -207,6 +207,10 @@ void CmsMTDConstruction<cms::DDFilteredView>::buildETLModule(cms::DDFilteredView
 
   baseNumber_.reset();
   baseNumber_.setSize(fv.copyNos().size());
+#ifdef EDM_ML_DEBUG
+  edm::LogVerbatim("CmsMTDConstruction") << ":rlopezru-CmsMTDCons: " << nodeName << " " << fv.copyNos().size();
+  edm::LogVerbatim("CmsMTDConstruction") << ":rlopezru-CmsMTDCons: " << ETLDetId(etlScheme_.getUnitID(baseNumber_));
+#endif
 
   for (uint i = 0; i < fv.copyNos().size(); i++) {
     std::string_view name((fv.geoHistory()[i])->GetName());
@@ -244,6 +248,10 @@ template <class FilteredView>
 GeometricTimingDet* CmsMTDConstruction<FilteredView>::buildLayer(FilteredView& fv) {
   std::string nodeName(fv.name());
   auto thisDet = theCmsMTDStringToEnum.type(nodeName);
+#ifdef EDM_ML_DEBUG
+  edm::LogVerbatim("CmsMTDConstruction") << "[rlopezru - CmsMTDConstruction::buildLayer] nodeName = " << nodeName
+	                                 << " thisDet = " << thisDet;
+#endif
   GeometricTimingDet* layer = new GeometricTimingDet(&fv, thisDet);
 
   if (thisDet != GeometricTimingDet::BTLLayer && thisDet != GeometricTimingDet::ETLDisc) {
@@ -262,7 +270,7 @@ GeometricTimingDet* CmsMTDConstruction<FilteredView>::buildLayer(FilteredView& f
     // no change for pre TDR scenarios, otherwise identifiy layer with disc
     //
     nLayer = (fv.name().find("Disc1") != std::string::npos) ? 1 : 2;
-    layer->setGeographicalID(nLayer);
+    layer->setGeographicalID(ETLDetId(0, nLayer, 0, 0, 0));
   }
 
   return layer;
@@ -275,7 +283,7 @@ bool CmsMTDConstruction<FilteredView>::isBTLV2(FilteredView& fv) {
 
 template <class FilteredView>
 bool CmsMTDConstruction<FilteredView>::isETLtdr(FilteredView& fv) {
-  return (fv.name() == "EModule_Timingactive");
+  return (fv.name().find("EModule") != std::string::npos);
 }
 
 template class CmsMTDConstruction<DDFilteredView>;
