@@ -1,4 +1,4 @@
-//#define EDM_ML_DEBUG
+#define EDM_ML_DEBUG
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -38,6 +38,15 @@ uint32_t ETLNumberingScheme::getUnitID(const MTDBaseNumber& baseNumber) const {
 
   const uint32_t modCopy(baseNumber.getCopyNumber(2));
   const uint32_t sensor(baseNumber.getCopyNumber(1));
+#ifdef EDM_ML_DEBUG
+  edm::LogInfo("MTDGeom") << baseNumber.getCopyNumber(0) << ", " << baseNumber.getCopyNumber(1) << ", "
+                          << baseNumber.getCopyNumber(2) << ", " << baseNumber.getCopyNumber(3) << ", "
+                          << baseNumber.getCopyNumber(4) << ", " << baseNumber.getCopyNumber(5) << ", "
+                          << baseNumber.getCopyNumber(6) << ", " << baseNumber.getCopyNumber(7) << ", "
+                          << baseNumber.getCopyNumber(8) << ", " << baseNumber.getCopyNumber(9) << ", "
+                          << baseNumber.getCopyNumber(10) << ", " << baseNumber.getCopyNumber(11);
+#endif
+
 
   const std::string_view& ringName(baseNumber.getLevelName(3));  // name of ring volume
   int modtyp(0);
