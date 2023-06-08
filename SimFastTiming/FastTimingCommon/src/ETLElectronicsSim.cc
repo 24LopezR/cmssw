@@ -43,7 +43,6 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
     ETLDetId detId = it->first.detid_;
     DetId geoId = detId.geographicalId();
     const MTDGeomDet* thedet = geom_->idToDet(geoId);
-    std::cout << ":ElectronicsSim: " << "Det Id (Geo) = " << detId.geographicalId() << std::endl;
     if (thedet == nullptr)
       throw cms::Exception("EtlElectronicsSim") << "GeographicalID: " << std::hex << geoId.rawId() << " ("
                                                 << detId.rawId() << ") is invalid!" << std::dec << std::endl;

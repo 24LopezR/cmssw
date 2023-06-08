@@ -44,10 +44,8 @@ void ETLDeviceSim::getHitsResponse(const std::vector<std::tuple<int, uint32_t, f
       continue;  // to be ignored at RECO level
 
     ETLDetId etlid(detId);
-    std::cout << ":Rublo: " << "id = " << id << " MTDDetId = " << detId.rawId() << " ETLSensor = " << etlid.sensor() << std::endl;
-    DetId geoId = ETLDetId(etlid.mtdSide(), etlid.mtdRR(), etlid.module(), etlid.modType(), etlid.sensor());
+    DetId geoId = ETLDetId(etlid.mtdSide(), etlid.mtdRR(), etlid.module(), etlid.sensor(), etlid.modType());
     const MTDGeomDet* thedet = geom_->idToDet(geoId);
-    std::cout << ":Rublo: " << "Geo Id = " << geoId.rawId() << " Det Id = " << detId.rawId() << std::endl;
     if (thedet == nullptr) {
       throw cms::Exception("ETLDeviceSim") << "GeographicalID: " << std::hex << geoId.rawId() << " (" << detId.rawId()
                                            << ") is invalid!" << std::dec << std::endl;
@@ -71,10 +69,8 @@ void ETLDeviceSim::getHitsResponse(const std::vector<std::tuple<int, uint32_t, f
     const auto& thepixel = topo.pixel(simscaled);
     const uint8_t row(thepixel.first), col(thepixel.second);
 
-    std::cout << ":Rublo: " << "Raw Id = " << detId.rawId() << " Pos = ( " << position.x() << " " << position.y() << " " << position.z() << " )" << std::endl;
     auto simHitIt =
         simHitAccumulator->emplace(mtd_digitizer::MTDCellId(id, row, col), mtd_digitizer::MTDCellInfo()).first;
-    std::cout << "        " << "simHitIt detId = " << simHitIt->first.detid_ << std::endl;
 
 
     // Accumulate in 15 buckets of 25ns (9 pre-samples, 1 in-time, 5 post-samples)
