@@ -17,7 +17,7 @@
 #include <iostream>
 #include <map>
 
-#define EDM_ML_DEBUG
+//#define EDM_ML_DEBUG
 
 namespace {
   GeomDetEnumerators::SubDetector geometricDetToGeomDet(GeometricTimingDet::GTDEnumType gdenum) {

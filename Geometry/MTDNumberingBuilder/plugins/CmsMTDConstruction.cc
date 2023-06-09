@@ -1,4 +1,4 @@
-#define EDM_ML_DEBUG
+//#define EDM_ML_DEBUG
 
 #include "DetectorDescription/Core/interface/DDFilteredView.h"
 #include "DetectorDescription/DDCMS/interface/DDFilteredView.h"
@@ -66,7 +66,7 @@ void CmsMTDConstruction<DDFilteredView>::buildBTLModule(DDFilteredView& fv, Geom
     for (uint i = gh.size(); i-- > 0;) {
       baseNumber_.addLevel(gh[i].logicalPart().name().name(), gh[i].copyno());
 #ifdef EDM_ML_DEBUG
-//      edm::LogVerbatim("CmsMTDConstruction") << gh[i].logicalPart().name().name() << " " << gh[i].copyno();
+      edm::LogVerbatim("CmsMTDConstruction") << gh[i].logicalPart().name().name() << " " << gh[i].copyno();
 #endif
     }
 
@@ -85,8 +85,8 @@ void CmsMTDConstruction<DDFilteredView>::buildBTLModule(DDFilteredView& fv, Geom
     module_number += atoi(modname.substr(delim1 + CmsMTDStringToEnum::kModStrLen, delim2).c_str()) - 1;
 
 #ifdef EDM_ML_DEBUG
-//    edm::LogVerbatim("CmsMTDConstruction")
-//        << "BTLModule = " << modname << " " << copyNumbers[copyNumbers.size() - 3] << " " << module_number;
+    edm::LogVerbatim("CmsMTDConstruction")
+        << "BTLModule = " << modname << " " << copyNumbers[copyNumbers.size() - 3] << " " << module_number;
 #endif
 
     if (modname.find(positive) != std::string::npos) {
@@ -117,7 +117,7 @@ void CmsMTDConstruction<cms::DDFilteredView>::buildBTLModule(cms::DDFilteredView
       size_t ipos = name.rfind('_');
       baseNumber_.addLevel(name.substr(0, ipos), fv.copyNos()[i]);
 #ifdef EDM_ML_DEBUG
-//      edm::LogVerbatim("CmsMTDConstruction") << name.substr(0, ipos) << " " << fv.copyNos()[i];
+      edm::LogVerbatim("CmsMTDConstruction") << name.substr(0, ipos) << " " << fv.copyNos()[i];
 #endif
     }
 
@@ -136,8 +136,8 @@ void CmsMTDConstruction<cms::DDFilteredView>::buildBTLModule(cms::DDFilteredView
     module_number += atoi(modname.substr(delim1 + CmsMTDStringToEnum::kModStrLen, delim2).c_str()) - 1;
 
 #ifdef EDM_ML_DEBUG
-//    edm::LogVerbatim("MTDNumbering") << fv.path() << "\nBTLModule = " << modname << " " << copyNumbers[2] << " "
-//                                     << module_number;
+    edm::LogVerbatim("MTDNumbering") << fv.path() << "\nBTLModule = " << modname << " " << copyNumbers[2] << " "
+                                     << module_number;
 #endif
 
     if (modname.find(positive) != std::string::npos) {

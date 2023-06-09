@@ -9,8 +9,8 @@
     @brief Detector identifier class for the Endcap Timing Layer.
 
     bit 15-5 : module sequential number
-    bit 4-3  : module type (unused so far)
-    [rlopezru] bit 2-1: sensor
+    bit 4-3  : sensor
+    bit 2-1  : module type (unused so far)
 */
 
 class ETLDetId : public MTDDetId {

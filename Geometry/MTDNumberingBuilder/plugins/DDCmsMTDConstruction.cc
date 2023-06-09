@@ -1,4 +1,4 @@
-#define EDM_ML_DEBUG
+//#define EDM_ML_DEBUG
 
 #include "Geometry/MTDNumberingBuilder/plugins/DDCmsMTDConstruction.h"
 
@@ -124,9 +124,6 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
   std::vector<GeometricTimingDet*> subdet;
   std::vector<GeometricTimingDet*> layer;
 
-#ifdef EDM_ML_DEBUG
-  edm::LogInfo("MTDNumbering") << ":rlopezru: " << GeometricTimingDet::ETLModule << " " << GeometricTimingDet::ETLSensor;
-#endif
   do {
     GeometricTimingDet::GeometricTimingEnumType fullNode = theCmsMTDStringToEnum.type(fv.name());
     GeometricTimingDet::GeometricTimingEnumType thisNode =
@@ -134,11 +131,8 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
     size_t num = fv.geoHistory().size();
 
 #ifdef EDM_ML_DEBUG
-    if ((thisNode >= 7 && thisNode < 50) || (fullNode >= 7 && fullNode < 50)) {
-      edm::LogVerbatim("MTDNumbering") << ":rlopezru: " << "GeoHist size = " << num;
-      edm::LogVerbatim("MTDNumbering") << ":rlopezru: " << "Module = " << fv.name() << " fullNode = " << fullNode
+    edm::LogVerbatim("MTDNumbering") << "Module = " << fv.name() << " fullNode = " << fullNode
                                      << " thisNode = " << thisNode;
-    }
 #endif
 
     if (fullNode == GeometricTimingDet::BTL || fullNode == GeometricTimingDet::ETL) {
@@ -177,7 +171,7 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
     }
     if (thisNode == GeometricTimingDet::BTLModule) {
 #ifdef EDM_ML_DEBUG
-//      edm::LogVerbatim("MTDNumbering") << "Registered in GeometricTimingDet as type " << thisNode;
+      edm::LogVerbatim("MTDNumbering") << "Registered in GeometricTimingDet as type " << thisNode;
 #endif
       theCmsMTDConstruction.buildBTLModule(fv, layer.back());
       limit = num;
@@ -336,7 +330,7 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const cms::D
     }
     if (thisNode == GeometricTimingDet::BTLModule) {
 #ifdef EDM_ML_DEBUG
-//      edm::LogVerbatim("DD4hep_MTDNumbering") << "Registered in GeometricTimingDet as type " << thisNode;
+      edm::LogVerbatim("DD4hep_MTDNumbering") << "Registered in GeometricTimingDet as type " << thisNode;
 #endif
       if (isBTLV2 == false) {
         if (theCmsMTDConstruction.isBTLV2(fv)) {
