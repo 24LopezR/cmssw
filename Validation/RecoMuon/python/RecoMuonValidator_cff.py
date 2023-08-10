@@ -71,14 +71,69 @@ recoMuonVMuAssoc_tgt = recoMuonValidator.clone(
 )
 recoMuonVMuAssoc_tgt.tpSelector.src = ("TPmu")
 ##########################################################################
+# Displaced muons collection
+#
+#displaced tracker
+recoMuonVMuAssoc_dtrk = recoDisplacedMuonValidator.clone(
+    subDir = 'Muons/RecoMuonV/RecoMuon_MuonAssoc_dTrk',
+    muAssocLabel = 'muonAssociatorByHitsNoSimHitsHelperTrk',
+    trackType = 'inner',
+    selection = "isTrackerMuon",
+    simLabel = ("TPmu"),
+    tpRefVector = True
+)
+recoMuonVMuAssoc_dtrk.tpSelector.src = ("TPmu")
+#standalone
+recoMuonVMuAssoc_dsta = recoDisplacedMuonValidator.clone(
+    subDir = 'Muons/RecoMuonV/RecoMuon_MuonAssoc_dSta',
+    muAssocLabel = 'muonAssociatorByHitsNoSimHitsHelperStandalone',
+    trackType = 'outer',
+    selection = "isStandAloneMuon",
+    simLabel = ("TPmu"),
+    tpRefVector = True
+
+)
+recoMuonVMuAssoc_dsta.tpSelector.src = ("TPmu")
+#global
+recoMuonVMuAssoc_dglb = recoDisplacedMuonValidator.clone(
+    subDir = 'Muons/RecoMuonV/RecoMuon_MuonAssoc_dGlb',
+    muonLabel = 'displacedMuons',
+    muAssocLabel = 'muonAssociatorByHitsNoSimHitsHelperGlobal',
+    trackType = 'global',
+    selection = "isGlobalMuon",
+    simLabel = ("TPmu"),
+    tpRefVector = True,
+)
+recoMuonVMuAssoc_dglb.tpSelector.src = ("TPmu")
+#tight
+recoMuonVMuAssoc_dtgt = recoDisplacedMuonValidator.clone(
+    subDir = 'Muons/RecoMuonV/RecoMuon_MuonAssoc_dTgt',
+    muAssocLabel = 'muonAssociatorByHitsNoSimHitsHelperTight',
+    trackType = 'global',
+    selection = 'isGlobalMuon',
+    wantTightMuon = True,
+    beamSpot = 'offlineBeamSpot',
+    primaryVertex = 'offlinePrimaryVertices',
+    simLabel = ("TPmu"),
+    tpRefVector = True,
+)
+recoMuonVMuAssoc_dtgt.tpSelector.src = ("TPmu")
+
+##########################################################################
 # Muon validation sequence using RecoMuonValidator
 #
-
 muonValidationRMV_seq = cms.Sequence(
     muonAssociatorByHitsNoSimHitsHelperTrk +recoMuonVMuAssoc_trk
     +muonAssociatorByHitsNoSimHitsHelperStandalone +recoMuonVMuAssoc_sta
     +muonAssociatorByHitsNoSimHitsHelperGlobal +recoMuonVMuAssoc_glb
     +muonAssociatorByHitsNoSimHitsHelperTight +recoMuonVMuAssoc_tgt
+    )
+# ... same for displaced muons
+muonValidationRDMV_seq = cms.Sequence(
+    muonAssociatorByHitsNoSimHitsHelperTrk +recoMuonVMuAssoc_dtrk
+    +muonAssociatorByHitsNoSimHitsHelperStandalone +recoMuonVMuAssoc_dsta
+    +muonAssociatorByHitsNoSimHitsHelperGlobal +recoMuonVMuAssoc_dglb
+    +muonAssociatorByHitsNoSimHitsHelperTight +recoMuonVMuAssoc_dtgt
     )
 
 # not used

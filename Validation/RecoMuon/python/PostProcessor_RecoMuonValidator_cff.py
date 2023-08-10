@@ -55,6 +55,15 @@ postProcessorRecoMuonTrkPF = postProcessorRecoMuon.clone(
 postProcessorRecoMuonStaPF = postProcessorRecoMuon.clone(
     subDirs = ["Muons/RecoMuonV/RecoMuon_MuonAssoc_StaPF"]
 )
+postProcessorRecoMuondGlb = postProcessorRecoMuon.clone(
+    subDirs = ["Muons/RecoMuonV/RecoMuon_MuonAssoc_dGlb"]
+)
+postProcessorRecoMuondTrk = postProcessorRecoMuon.clone(
+    subDirs = ["Muons/RecoMuonV/RecoMuon_MuonAssoc_dTrk"]
+)
+postProcessorRecoMuondSta = postProcessorRecoMuon.clone(
+    subDirs = ["Muons/RecoMuonV/RecoMuon_MuonAssoc_dSta"]
+)
 #not sure about this one, which types are monitored
 postProcessorRecoMuonComp = DQMEDHarvester(
     "DQMGenericClient",
@@ -93,5 +102,8 @@ postProcessorsRecoMuonValidator_seq = cms.Sequence( postProcessorRecoMuonGlb
                                                     * postProcessorRecoMuonGlbPF 
                                                     * postProcessorRecoMuonTrkPF 
                                                     * postProcessorRecoMuonStaPF 
+                                                    * postProcessorRecoMuondGlb 
+                                                    * postProcessorRecoMuondTrk 
+                                                    * postProcessorRecoMuondSta 
                                                     * postProcessorRecoMuonComp 
                                                     * postProcessorRecoMuonCompPF )

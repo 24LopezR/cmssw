@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from RecoMuon.TrackingTools.MuonServiceProxy_cff import MuonServiceProxy
-from Validation.RecoMuon.selectors_cff import muonTPSet
+from Validation.RecoMuon.selectors_cff import muonTPSet, displacedMuonTPSet
 
 from DQMServices.Core.DQMEDAnalyzer import DQMEDAnalyzer
 recoMuonValidator = DQMEDAnalyzer('RecoMuonValidator',
@@ -97,3 +97,10 @@ recoMuonValidator = DQMEDAnalyzer('RecoMuonValidator',
 
 from Configuration.ProcessModifiers.premix_stage2_cff import premix_stage2
 premix_stage2.toModify(recoMuonValidator, simLabel = "mixData:MergedTrackTruth")
+
+recoDisplacedMuonValidator = recoMuonValidator.clone(
+    tpSelector = displacedMuonTPSet,
+    muonLabel = cms.InputTag("displacedMuons")
+)
+
+premix_stage2.toModify(recoDisplacedMuonValidator, simLabel = "mixData:MergedTrackTruth")
