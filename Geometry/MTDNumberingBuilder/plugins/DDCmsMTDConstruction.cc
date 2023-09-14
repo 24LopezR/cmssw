@@ -51,54 +51,67 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
   filter.add("btl:");
   filter.add("etl:");
 
-  std::vector<std::string> volnames = {"service",
-                                       "support",
-                                       "FSide",
-                                       "BSide",
-                                       "LSide",
-                                       "RSide",
-                                       "Between",
-                                       "SupportPlate",
-                                       "Shield",
-                                       "ThermalScreen",
-                                       "Aluminium_Disc",
-                                       "MIC6_Aluminium_Disc",
-                                       "ThermalPad",
-                                       "AlN",
-                                       "LairdFilm",
-                                       "ETROC",
-                                       "SensorModule",
-                                       "SensorModule_Front_Left",
-                                       "SensorModule_Front_Right",
-                                       "SensorModule_Back_Left",
-                                       "SensorModule_Back_Right",
-                                       "DiscSector",
-                                       "LGAD_Substrate",
-                                       "ConcentratorCard",
-                                       "PowerControlCard",
-                                       "CoolingPlate",
-                                       "FrontEndCard",
-                                       "FrontModerator",
-                                       "Cables",
-                                       "Cables1",
-                                       "Cables2",
-                                       "Cables3",
-                                       "Cables4",
-                                       "Cables5",
-                                       "Cables6",
-                                       "Cables7",
-                                       "PatchPanel",
-                                       "Notich_cables",
-                                       "ServicesExtVolume1",
-                                       "ServicesExtVolume2",
-                                       "glueLGAD",
-                                       "BumpBonds",
-                                       "ModulePCB",
-                                       "connectorsGap",
-                                       "ReadoutBoard",
-                                       "LGAD"};
+  std::vector<std::string> volnames_v8 = {"service",
+                                          "support",
+                                          "FSide",
+                                          "BSide",
+                                          "LSide",
+                                          "RSide",
+                                          "Between",
+                                          "SupportPlate",
+                                          "Shield",
+                                          "ThermalScreen",
+                                          "Aluminium_Disc",
+                                          "MIC6_Aluminium_Disc",
+                                          "ThermalPad",
+                                          "AlN",
+                                          "LairdFilm",
+                                          "ETROC",
+                                          "DiscSector",
+                                          "LGAD_Substrate",
+                                          "ConcentratorCard",
+                                          "PowerControlCard",
+                                          "CoolingPlate",
+                                          "FrontEndCard",
+                                          "FrontModerator",
+                                          "Cables",
+                                          "Cables1",
+                                          "Cables2",
+                                          "Cables3",
+                                          "Cables4",
+                                          "Cables5",
+                                          "Cables6",
+                                          "Cables7",
+                                          "PatchPanel",
+                                          "Notich_cables",
+                                          "ServicesExtVolume1",
+                                          "ServicesExtVolume2",
+                                          "glueLGAD",
+                                          "BumpBonds",
+                                          "ModulePCB",
+                                          "connectorsGap",
+                                          "ReadoutBoard",
+                                          "LGAD"};
+  std::vector<std::string> volnames_prev8 = {"SensorModule",
+                                             "SensorModule_Front_Left",
+                                             "SensorModule_Front_Right",
+                                             "SensorModule_Back_Left",
+                                             "SensorModule_Back_Right"};
   for (auto const& theVol : volnames) {
     filter.veto(theVol);
+  }
+  if (prev8) {
+    for (auto const& theVol : volnames_prev8) {
+      filter.veto(theVol);
+    }
+  }
+
+  // Specify ETL end component
+  GeometricTimingDet::GeometricTimingEnumType ETLEndComponent;
+  if (prev8) {
+    ETLEndComponent = GeometricTimingDet::ETLModule;
+  } else {
+    ETLEndComponent = GeometricTimingDet::ETLSensor;
   }
 
   DDFilteredView fv(cpv, filter);
@@ -164,7 +177,7 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
       } else {
         limit = num + 1;
       }
-    } else if ((thisNode == GeometricTimingDet::ETLModule) && limit == 0) {
+    } else if ((thisNode == ETLEndComponent) && limit == 0) {
       limit = num;
     }
     if (num != limit && limit > 0) {
@@ -176,7 +189,7 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
 #endif
       theCmsMTDConstruction.buildBTLModule(fv, layer.back());
       limit = num;
-    } else if (thisNode == GeometricTimingDet::ETLModule) {
+    } else if (thisNode == ETLEndComponent) {
 #ifdef EDM_ML_DEBUG
       edm::LogVerbatim("MTDNumbering") << "Registered in GeometricTimingDet as type " << thisNode;
 #endif
@@ -337,7 +350,7 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const cms::D
         }
       }
       theCmsMTDConstruction.buildBTLModule(fv, layer.back());
-    } else if (thisNode == GeometricTimingDet::ETLModule) {
+    } else if (thisNode == ETLEndComponent) {
 #ifdef EDM_ML_DEBUG
       edm::LogVerbatim("DD4hep_MTDNumbering") << "Registered in GeometricTimingDet as type " << thisNode;
 #endif

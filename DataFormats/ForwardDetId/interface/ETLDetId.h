@@ -9,7 +9,8 @@
     @brief Detector identifier class for the Endcap Timing Layer.
 
     bit 15-5 : module sequential number
-    bit 4-3  : module type (unused so far)
+    bit 4-3  : sensor
+    bit 2-1  : module type (unused so far)
 */
 
 class ETLDetId : public MTDDetId {
@@ -22,7 +23,9 @@ private:
 public:
   static constexpr uint32_t kETLmoduleOffset = 5;
   static constexpr uint32_t kETLmoduleMask = 0x7FF;
-  static constexpr uint32_t kETLmodTypeOffset = 3;
+  static constexpr uint32_t kETLsensorOffset = 3;
+  static constexpr uint32_t kETLsensorMask = 0x3;
+  static constexpr uint32_t kETLmodTypeOffset = 1;
   static constexpr uint32_t kETLmodTypeMask = 0x3;
 
   static constexpr int kETLv1maxRing = 11;
@@ -48,7 +51,7 @@ public:
 
   static constexpr uint32_t kSoff = 4;
 
-  enum class EtlLayout { tp = 1, v4 = 2, v5 = 3 };
+  enum class EtlLayout { tp = 1, v4 = 2, v5 = 3, v8 = 4 };
 
   // ---------- Constructors, enumerated types ----------
 
@@ -77,10 +80,20 @@ public:
   }
 
   /** Construct and fill only the det and sub-det fields. */
+  // pre v8
   ETLDetId(uint32_t zside, uint32_t ring, uint32_t module, uint32_t modtyp)
       : MTDDetId(DetId::Forward, ForwardSubdetector::FastTime) {
     id_ |= (MTDType::ETL & kMTDsubdMask) << kMTDsubdOffset | (zside & kZsideMask) << kZsideOffset |
            (ring & kRodRingMask) << kRodRingOffset | (module & kETLmoduleMask) << kETLmoduleOffset |
+           (modtyp & kETLmodTypeMask) << kETLmodTypeOffset;
+    id_ |= kETLformatV2;
+  }
+  // v8
+  ETLDetId(uint32_t zside, uint32_t ring, uint32_t module, uint32_t sensor, uint32_t modtyp)
+      : MTDDetId(DetId::Forward, ForwardSubdetector::FastTime) {
+    id_ |= (MTDType::ETL & kMTDsubdMask) << kMTDsubdOffset | (zside & kZsideMask) << kZsideOffset |
+           (ring & kRodRingMask) << kRodRingOffset | (module & kETLmoduleMask) << kETLmoduleOffset |
+           (sensor & kETLsensorMask) << kETLsensorOffset |
            (modtyp & kETLmodTypeMask) << kETLmodTypeOffset;
     id_ |= kETLformatV2;
   }
@@ -91,6 +104,7 @@ public:
     return (sector + discside * kSoff + 2 * kSoff * disc);
   }
 
+  // pre v8
   ETLDetId(uint32_t zside, uint32_t disc, uint32_t discside, uint32_t sector, uint32_t module, uint32_t modtyp)
       : MTDDetId(DetId::Forward, ForwardSubdetector::FastTime) {
     id_ |= (MTDType::ETL & kMTDsubdMask) << kMTDsubdOffset | (zside & kZsideMask) << kZsideOffset |
@@ -98,11 +112,23 @@ public:
            (module & kETLmoduleMask) << kETLmoduleOffset | (modtyp & kETLmodTypeMask) << kETLmodTypeOffset;
     id_ |= kETLformatV2;
   }
+  // v8
+  ETLDetId(uint32_t zside, uint32_t disc, uint32_t discside, uint32_t sector, uint32_t module, uint32_t sensor, uint32_t modtyp)
+      : MTDDetId(DetId::Forward, ForwardSubdetector::FastTime) {
+    id_ |= (MTDType::ETL & kMTDsubdMask) << kMTDsubdOffset | (zside & kZsideMask) << kZsideOffset |
+           (encodeSector(disc, discside, sector) & kRodRingMask) << kRodRingOffset |
+           (module & kETLmoduleMask) << kETLmoduleOffset | (sensor & kETLsensorMask) << kETLsensorOffset |
+           (modtyp & kETLmodTypeMask) << kETLmodTypeOffset;
+    id_ |= kETLformatV2;
+  }
 
   // ---------- Common methods ----------
 
   /** Returns ETL module number. */
   inline int module() const { return (id_ >> kETLmoduleOffset) & kETLmoduleMask; }
+
+  /** Returns ETL module sensor number. */
+  inline int sensor() const { return (id_ >> kETLsensorOffset) & kETLsensorMask; }
 
   /** Returns ETL module type number. */
   inline int modType() const { return (id_ >> kETLmodTypeOffset) & kETLmodTypeMask; }

@@ -33,6 +33,8 @@ uint32_t ETLNumberingScheme::getUnitID(const MTDBaseNumber& baseNumber) const {
   }
 
   const uint32_t modCopy(baseNumber.getCopyNumber(2));
+  uint32_t sensor = 0;
+  if (!prev8) { sensor = baseNumber.getCopyNumber(1); }
 
   const std::string_view& ringName(baseNumber.getLevelName(3));  // name of ring volume
   int modtyp(0);
@@ -100,20 +102,39 @@ uint32_t ETLNumberingScheme::getUnitID(const MTDBaseNumber& baseNumber) const {
 
   // all inputs are fine. Go ahead and decode
 
-  ETLDetId thisETLdetid(zside, ringCopy, modCopy, modtyp);
-  const uint32_t intindex = thisETLdetid.rawId();
-
+  // Different for v8 and pre v8 ETL geometries
+  uint32_t intindex = 0;
+  uint32_t altintindex = 0;
+  if (prev8) {
+    ETLDetId thisETLdetid(zside, ringCopy, modCopy, modtyp);
+    intindex = thisETLdetid.rawId();
 #ifdef EDM_ML_DEBUG
-  edm::LogInfo("MTDGeom") << "ETL Numbering scheme: "
-                          << " ring = " << ringCopy << " zside = " << zside << " module = " << modCopy
-                          << " modtyp = " << modtyp << " Raw Id = " << intindex << thisETLdetid;
+    edm::LogInfo("MTDGeom") << "ETL Numbering scheme: "
+                            << " ring = " << ringCopy << " zside = " << zside << " module = " << modCopy
+                            << " modtyp = " << modtyp << " Raw Id = " << intindex << thisETLdetid;
 #endif
-  ETLDetId altETLdetid(zside, discN, sectorS, sectorN, modCopy, modtyp);
-  const uint32_t altintindex = altETLdetid.rawId();
+  
+    ETLDetId altETLdetid(zside, discN, sectorS, sectorN, modCopy, modtyp);
+    altintindex = altETLdetid.rawId();
+
+  } else {
+    ETLDetId thisETLdetid(zside, ringCopy, modCopy, sensor, modtyp);
+    intindex = thisETLdetid.rawId();
+#ifdef EDM_ML_DEBUG
+    edm::LogInfo("MTDGeom") << "ETL Numbering scheme: "
+                            << " ring = " << ringCopy << " zside = " << zside << " module = " << modCopy
+                            << " modtyp = " << modtyp << " sensor = " << sensor 
+                            << " Raw Id = " << intindex << thisETLdetid;
+#endif
+  
+    ETLDetId altETLdetid(zside, discN, sectorS, sectorN, modCopy, sensor, modtyp);
+    altintindex = altETLdetid.rawId();
+
+  }
+
   if (intindex != altintindex) {
     edm::LogWarning("MTDGeom") << "Incorrect alternative construction \n"
-                               << "disc = " << discN << " disc side = " << sectorS << " sector = " << sectorN << "\n"
-                               << altETLdetid;
+                               << "disc = " << discN << " disc side = " << sectorS << " sector = " << sectorN << "\n";
   }
 
   return intindex;

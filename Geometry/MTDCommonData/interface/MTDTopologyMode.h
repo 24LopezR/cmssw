@@ -19,7 +19,8 @@ namespace MTDTopologyMode {
     barphiflat = 4,
     btlv1etlv4 = 5,
     btlv1etlv5 = 6,
-    btlv2etlv5 = 7
+    btlv2etlv5 = 7,
+    btlv2etlv8 = 8
   };
 
   Mode MTDStringToEnumParser(const std::string&);
@@ -47,8 +48,10 @@ namespace MTDTopologyMode {
       return ETLDetId::EtlLayout::tp;
     } else if (topoMode == static_cast<int>(Mode::btlv1etlv4)) {
       return ETLDetId::EtlLayout::v4;
-    } else {
+    } else if (topoMode == static_cast<int>(Mode::btlv1etlv5) or topoMode == static_cast<int>(Mode::btlv2etlv5)) {
       return ETLDetId::EtlLayout::v5;
+    } else {
+      return ETLDetId::EtlLayout::v8;
     }
   }
 

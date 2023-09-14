@@ -209,7 +209,7 @@ GeometricTimingDet* CmsMTDConstruction<FilteredView>::buildSubdet(FilteredView& 
     subdet->setGeographicalID(BTLDetId(0, 0, 0, 0, 0));
   } else if (thisDet == GeometricTimingDet::ETL) {
     const uint32_t side = subdet->translation().z() > 0 ? 1 : 0;
-    subdet->setGeographicalID(ETLDetId(side, 0, 0, 0));
+    subdet->setGeographicalID(ETLDetId(side, 0, 0, 0, 0));
   } else {
     throw cms::Exception("CmsMTDConstruction") << " ERROR - I was expecting a SubDet, I got a " << fv.name();
   }
@@ -239,7 +239,7 @@ GeometricTimingDet* CmsMTDConstruction<FilteredView>::buildLayer(FilteredView& f
     // no change for pre TDR scenarios, otherwise identifiy layer with disc
     //
     nLayer = (fv.name().find("Disc1") != std::string::npos) ? 1 : 2;
-    layer->setGeographicalID(nLayer);
+    layer->setGeographicalID(ETLDetId(0, nLayer, 0, 0, 0));
   }
 
   return layer;
