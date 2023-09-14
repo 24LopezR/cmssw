@@ -16,6 +16,11 @@ ETLDeviceSim::ETLDeviceSim(const edm::ParameterSet& pset, edm::ConsumesCollector
     : geomToken_(iC.esConsumes()),
       geom_(nullptr),
       MIPPerMeV_(1.0 / pset.getParameter<double>("meVPerMIP")),
+      integratedLum_(pset.getParameter<double>("IntegratedLuminosity")),
+      fluence_(pset.getParameter<std::string>("FluenceVsRadius")),
+      lgadGain_(pset.getParameter<std::string>("LGADGainVsFluence")),
+      lgadGainDegradation_(pset.getParameter<std::string>("LGADGainDegradation")),
+      applyDegradation_(pset.getParameter<bool>("applyDegradation")),
       bxTime_(pset.getParameter<double>("bxTime")),
       tofDelay_(pset.getParameter<double>("tofDelay")) {}
 
@@ -27,7 +32,13 @@ void ETLDeviceSim::getHitsResponse(const std::vector<std::tuple<int, uint32_t, f
                                    CLHEP::HepRandomEngine* hre) {
   using namespace geant_units::operators;
 
+  //std::cout << "--------------------This is a call to getHitsResponse -------------------------" << std::endl;
   //loop over sorted hits
+  std::vector<double> emptyV;
+  std::vector<double> radius(1);
+  std::vector<double> fluence(1);
+  std::vector<double> gain(1);
+  std::vector<double> param(2);
   const int nchits = hitRefs.size();
   for (int i = 0; i < nchits; ++i) {
     const int hitidx = std::get<0>(hitRefs[i]);
@@ -57,15 +68,29 @@ void ETLDeviceSim::getHitsResponse(const std::vector<std::tuple<int, uint32_t, f
     const float toa = std::get<2>(hitRefs[i]) + tofDelay_;
     const PSimHit& hit = hits->at(hitidx);
     const float charge = convertGeVToMeV(hit.energyLoss()) * MIPPerMeV_;
+    float charge = convertGeVToMeV(hit.energyLoss()) * MIPPerMeV_;
 
     // calculate the simhit row and column
     const auto& position = hit.localPosition();
     // ETL is already in module-local coordinates so just scale to cm from mm
     Local3DPoint simscaled(convertMmToCm(position.x()), convertMmToCm(position.y()), convertMmToCm(position.z()));
+    const auto& global_point = thedet->toGlobal(simscaled);
+ 
+    radius[0] = global_point.perp();
+    fluence[0] = integratedLum_ * fluence_.evaluate(radius, emptyV);
+    gain[0] = lgadGain_.evaluate(fluence, emptyV);
+
     //The following lines check whether the pixel point is actually out of the active area.
-    //If that is the case it simply ignores the point but in the future some more sophisticated function could be applied.
-    if (!topo.isInPixel(simscaled)) {
-      continue;
+    if (topo.isInPixel(simscaled)) {
+          charge *= gain[0];
+    } else {
+        if(applyDegradation_) {
+            double dGapCenter = TMath::Max(TMath::Abs(simscaled.x()), TMath::Abs(simscaled.y()));
+            param[0] = gain[0];
+            param[1] = dGapCenter;
+            gain[0] = lgadGainDegradation_.evaluate(param, emptyV);
+            charge *= gain[0];
+        }
     }
     const auto& thepixel = topo.pixel(simscaled);
     const uint8_t row(thepixel.first), col(thepixel.second);
