@@ -1,4 +1,4 @@
-//#define EDM_ML_DEBUG
+#define EDM_ML_DEBUG
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -24,6 +24,7 @@ uint32_t ETLNumberingScheme::getUnitID(const MTDBaseNumber& baseNumber) const {
 
 #ifdef EDM_ML_DEBUG
   edm::LogInfo("MTDGeom") << "ETLNumberingScheme geometry levels = " << nLevels;
+  //edm::LogInfo("MTDGeom") << "Base number capacity = " << baseNumber.getCapacity();
 #endif
 
   if (11 > nLevels) {
@@ -31,6 +32,8 @@ uint32_t ETLNumberingScheme::getUnitID(const MTDBaseNumber& baseNumber) const {
                                << "Not enough levels found in MTDBaseNumber ( " << nLevels << ") Returning 0";
     return 0;
   }
+
+  const bool prev8(!(baseNumber.getLevelName(2).find("Sensor") != std::string::npos));
 
   const uint32_t modCopy(baseNumber.getCopyNumber(2));
   uint32_t sensor = 0;

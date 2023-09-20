@@ -250,5 +250,10 @@ bool CmsMTDConstruction<FilteredView>::isBTLV2(FilteredView& fv) {
   return (fv.name().substr(0, 9) == "BTLModule");
 }
 
+template <class FilteredView>
+bool CmsMTDConstruction<FilteredView>::isETLpreV8(FilteredView& fv) {
+  return (fv.name().find("EModule") != std::string::npos);
+}
+
 template class CmsMTDConstruction<DDFilteredView>;
 template class CmsMTDConstruction<cms::DDFilteredView>;

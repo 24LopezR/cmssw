@@ -51,7 +51,7 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
   filter.add("btl:");
   filter.add("etl:");
 
-  std::vector<std::string> volnames_v8 = {"service",
+  std::vector<std::string> volnames = {"service",
                                           "support",
                                           "FSide",
                                           "BSide",
@@ -67,6 +67,11 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
                                           "AlN",
                                           "LairdFilm",
                                           "ETROC",
+                                          "SensorModule",
+                                          "SensorModule_Front_Left",
+                                          "SensorModule_Front_Right",
+                                          "SensorModule_Back_Left",
+                                          "SensorModule_Back_Right",
                                           "DiscSector",
                                           "LGAD_Substrate",
                                           "ConcentratorCard",
@@ -92,19 +97,17 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
                                           "connectorsGap",
                                           "ReadoutBoard",
                                           "LGAD"};
-  std::vector<std::string> volnames_prev8 = {"SensorModule",
-                                             "SensorModule_Front_Left",
-                                             "SensorModule_Front_Right",
-                                             "SensorModule_Back_Left",
-                                             "SensorModule_Back_Right"};
   for (auto const& theVol : volnames) {
     filter.veto(theVol);
   }
-  if (prev8) {
-    for (auto const& theVol : volnames_prev8) {
-      filter.veto(theVol);
-    }
-  }
+
+  DDFilteredView fv(cpv, filter);
+
+  CmsMTDStringToEnum theCmsMTDStringToEnum;
+  // temporary workaround to distinguish BTL scenarios ordering without introducing a dependency on MTDTopologyMode
+  auto isBTLV2 = false;
+  // temporary workaround to distinguish ETL scenarios ordering without introducing a dependency on MTDTopologyMode
+  const bool prev8(fv.name().find("EModule") != std::string::npos);
 
   // Specify ETL end component
   GeometricTimingDet::GeometricTimingEnumType ETLEndComponent;
@@ -113,12 +116,6 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
   } else {
     ETLEndComponent = GeometricTimingDet::ETLSensor;
   }
-
-  DDFilteredView fv(cpv, filter);
-
-  CmsMTDStringToEnum theCmsMTDStringToEnum;
-  // temporary workaround to distinguish BTL scenarios ordering without introducing a dependency on MTDTopologyMode
-  auto isBTLV2 = false;
 
   auto check_root = theCmsMTDStringToEnum.type(ExtractStringFromDD<DDFilteredView>::getString(attribute, &fv));
   if (check_root != GeometricTimingDet::MTD) {
@@ -313,6 +310,17 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const cms::D
   CmsMTDConstruction<cms::DDFilteredView> theCmsMTDConstruction;
   // temporary workaround to distinguish BTL scenarios ordering without introducing a dependency on MTDTopologyMode
   auto isBTLV2 = false;
+  // temporary workaround to distinguish ETL scenarios ordering without introducing a dependency on MTDTopologyMode
+  const bool prev8(fv.name().find("EModule") != std::string::npos);
+
+  // Specify ETL end component
+  GeometricTimingDet::GeometricTimingEnumType ETLEndComponent;
+  if (prev8) {
+    ETLEndComponent = GeometricTimingDet::ETLModule;
+  } else {
+    ETLEndComponent = GeometricTimingDet::ETLSensor;
+  }
+
 
   std::vector<GeometricTimingDet*> subdet;
   std::vector<GeometricTimingDet*> layer;
