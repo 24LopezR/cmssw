@@ -111,14 +111,14 @@
     <Include ref='Geometry/GEMGeometryBuilder/data/v12/GEMSpecsFilter.xml'/>
     <Include ref='Geometry/GEMGeometryBuilder/data/v12/GEMSpecs.xml'/>
     <Include ref='Geometry/ForwardSimData/data/zdcsens.xml'/>
-    <Include ref='Geometry/MTDSimData/data/v4/mtdsens.xml'/>
+    <Include ref='Geometry/MTDSimData/data/v5/mtdsens.xml'/>
     <Include ref='Geometry/HcalSimData/data/HcalProdCuts/2026/v1/HcalProdCuts.xml'/>
     <Include ref='Geometry/EcalSimData/data/EcalProdCuts.xml'/>
     <Include ref='Geometry/HGCalSimData/data/hgcProdCutsv15.xml'/>
     <Include ref='Geometry/MuonSimData/data/muonProdCuts/2026/v2/muonProdCuts.xml'/>
     <Include ref='Geometry/ForwardSimData/data/zdcProdCuts/2021/v2/zdcProdCuts.xml'/>
     <Include ref='Geometry/ForwardSimData/data/ForwardShieldProdCuts.xml'/>
-    <Include ref='Geometry/MTDSimData/data/v4/mtdProdCuts.xml'/>
+    <Include ref='Geometry/MTDSimData/data/v5/mtdProdCuts.xml'/>
     <Include ref='Geometry/CMSCommonData/data/FieldParameters.xml'/>
   </IncludeSection>
 </DDDefinition>

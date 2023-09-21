@@ -846,10 +846,10 @@ timingDict = {
            'Geometry/MTDCommonData/data/mtdParameters/v5/mtdParameters.xml',
            ],
        3 : [
-           'Geometry/MTDSimData/data/v4/mtdsens.xml'
+           'Geometry/MTDSimData/data/v5/mtdsens.xml'
            ],
        4 : [
-           'Geometry/MTDSimData/data/v4/mtdProdCuts.xml'
+           'Geometry/MTDSimData/data/v5/mtdProdCuts.xml'
            ],
        "sim" : [
            'from Geometry.MTDNumberingBuilder.mtdNumberingGeometry_cff import *',
