@@ -15,6 +15,7 @@ CmsMTDStringToEnum::Impl::Impl() {
   map_.emplace("Disc1Timing", GeometricTimingDet::ETLDisc);
   map_.emplace("Disc2Timing", GeometricTimingDet::ETLDisc);
   map_.emplace("Module", GeometricTimingDet::ETLModule);
+  map_.emplace("EModule", GeometricTimingDet::ETLPreV8Module);
   map_.emplace("Timingactive", GeometricTimingDet::ETLSensor);
 }
 
