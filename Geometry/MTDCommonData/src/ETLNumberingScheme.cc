@@ -24,7 +24,6 @@ uint32_t ETLNumberingScheme::getUnitID(const MTDBaseNumber& baseNumber) const {
 
 #ifdef EDM_ML_DEBUG
   edm::LogInfo("MTDGeom") << "ETLNumberingScheme geometry levels = " << nLevels;
-  //edm::LogInfo("MTDGeom") << "Base number capacity = " << baseNumber.getCapacity();
 #endif
 
   if (11 > nLevels) {
@@ -33,8 +32,9 @@ uint32_t ETLNumberingScheme::getUnitID(const MTDBaseNumber& baseNumber) const {
     return 0;
   }
 
-  const bool prev8(!(baseNumber.getLevelName(2).find("Sensor") != std::string::npos));
-  edm::LogInfo("MTDGeom") << "rlopezru: Is pre V8 geometry? " << prev8;
+  const bool prev8(baseNumber.getLevelName(2).find("Sensor") != std::string::npos);
+  //edm::LogInfo("MTDGeom") << "rlopezru: Is pre V8 geometry? " << prev8;
+  //edm::LogInfo("MTDGeom") << "rlopezru: Level 2 name: " << baseNumber.getLevelName(2);
 
   const uint32_t modCopy(baseNumber.getCopyNumber(2));
   uint32_t sensor = 0;
@@ -115,7 +115,7 @@ uint32_t ETLNumberingScheme::getUnitID(const MTDBaseNumber& baseNumber) const {
 #ifdef EDM_ML_DEBUG
     edm::LogInfo("MTDGeom") << "ETL Numbering scheme: "
                             << " ring = " << ringCopy << " zside = " << zside << " module = " << modCopy
-                            << " modtyp = " << modtyp << " Raw Id = " << intindex << thisETLdetid;
+                            << " modtyp = " << modtyp << " Raw Id = " << intindex;
 #endif
   
     ETLDetId altETLdetid(zside, discN, sectorS, sectorN, modCopy, modtyp);
@@ -128,7 +128,7 @@ uint32_t ETLNumberingScheme::getUnitID(const MTDBaseNumber& baseNumber) const {
     edm::LogInfo("MTDGeom") << "ETL Numbering scheme: "
                             << " ring = " << ringCopy << " zside = " << zside << " module = " << modCopy
                             << " modtyp = " << modtyp << " sensor = " << sensor 
-                            << " Raw Id = " << intindex << thisETLdetid;
+                            << " Raw Id = " << intindex;
 #endif
   
     ETLDetId altETLdetid(zside, discN, sectorS, sectorN, modCopy, modtyp, sensor);
