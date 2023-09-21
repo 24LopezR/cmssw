@@ -67,11 +67,11 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
                                        "AlN",
                                        "LairdFilm",
                                        "ETROC",
-                                       "SensorModule",
+                                       /**"SensorModule",
                                        "SensorModule_Front_Left",
                                        "SensorModule_Front_Right",
                                        "SensorModule_Back_Left",
-                                       "SensorModule_Back_Right",
+                                       "SensorModule_Back_Right",**/
                                        "DiscSector",
                                        "LGAD_Substrate",
                                        "ConcentratorCard",
@@ -108,11 +108,13 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const DDComp
   auto isBTLV2 = false;
   // temporary workaround to distinguish ETL scenarios ordering without introducing a dependency on MTDTopologyMode
   const bool prev8(fv.name().find("EModule") != std::string::npos);
+  edm::LogInfo("MTDNumbering") << "rlopezru: Is ETL pre V8? " << prev8;
+  edm::LogInfo("MTDNumbering") << "rlopezru: fv.name() = " << fv.name();
 
   // Specify ETL end component
   GeometricTimingDet::GeometricTimingEnumType ETLEndComponent;
   if (prev8) {
-    ETLEndComponent = GeometricTimingDet::ETLPreV8Module;
+    ETLEndComponent = GeometricTimingDet::ETLSensor;
   } else {
     ETLEndComponent = GeometricTimingDet::ETLSensor;
   }
@@ -312,11 +314,13 @@ std::unique_ptr<GeometricTimingDet> DDCmsMTDConstruction::construct(const cms::D
   auto isBTLV2 = false;
   // temporary workaround to distinguish ETL scenarios ordering without introducing a dependency on MTDTopologyMode
   const bool prev8(fv.name().find("EModule") != std::string::npos);
+  edm::LogInfo("MTDNumbering") << "rlopezru: Is ETL pre V8? " << prev8;
+  edm::LogInfo("MTDNumbering") << "rlopezru: fv.name() = " << fv.name();
 
   // Specify ETL end component
   GeometricTimingDet::GeometricTimingEnumType ETLEndComponent;
   if (prev8) {
-    ETLEndComponent = GeometricTimingDet::ETLPreV8Module;
+    ETLEndComponent = GeometricTimingDet::ETLSensor;
   } else {
     ETLEndComponent = GeometricTimingDet::ETLSensor;
   }

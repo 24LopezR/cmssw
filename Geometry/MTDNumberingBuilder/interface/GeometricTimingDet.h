@@ -59,8 +59,7 @@ public:
     ETLDisc = 8,
     ETLRing = 9,
     ETLModule = 10,
-    ETLPreV8Module = 11,
-    ETLSensor = 12
+    ETLSensor = 11
   };
 
   /**
