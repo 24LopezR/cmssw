@@ -1,4 +1,4 @@
-#define EDM_ML_DEBUG
+//#define EDM_ML_DEBUG
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -34,6 +34,7 @@ uint32_t ETLNumberingScheme::getUnitID(const MTDBaseNumber& baseNumber) const {
   }
 
   const bool prev8(!(baseNumber.getLevelName(2).find("Sensor") != std::string::npos));
+  edm::LogInfo("MTDGeom") << "rlopezru: Is pre V8 geometry? " << prev8;
 
   const uint32_t modCopy(baseNumber.getCopyNumber(2));
   uint32_t sensor = 0;
@@ -121,7 +122,7 @@ uint32_t ETLNumberingScheme::getUnitID(const MTDBaseNumber& baseNumber) const {
     altintindex = altETLdetid.rawId();
 
   } else {
-    ETLDetId thisETLdetid(zside, ringCopy, modCopy, sensor, modtyp);
+    ETLDetId thisETLdetid(zside, ringCopy, modCopy, modtyp, sensor);
     intindex = thisETLdetid.rawId();
 #ifdef EDM_ML_DEBUG
     edm::LogInfo("MTDGeom") << "ETL Numbering scheme: "
@@ -130,7 +131,7 @@ uint32_t ETLNumberingScheme::getUnitID(const MTDBaseNumber& baseNumber) const {
                             << " Raw Id = " << intindex << thisETLdetid;
 #endif
   
-    ETLDetId altETLdetid(zside, discN, sectorS, sectorN, modCopy, sensor, modtyp);
+    ETLDetId altETLdetid(zside, discN, sectorS, sectorN, modCopy, modtyp, sensor);
     altintindex = altETLdetid.rawId();
 
   }
