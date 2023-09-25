@@ -12,75 +12,100 @@
 
 class ETLSample {
 public:
-  enum ETLSampleMasks {
+  enum ETLSampleDataMasks {
     kThreshMask = 0x1,
-    kModeMask = 0x1,
-    kColumnMask = 0x1f,
-    kRowMask = 0x3f,
-    kToAMask = 0x7ff,
-    kDataMask = 0xff
+    kEAMask = 0x3,
+    kToTMask = 0xff,
+    kToAMask = 0x1ff,
+    kCalMask = 0x1ff,
+    kHitFlagMask = 0x7
   };
-  enum ETLSampleShifts {
+  enum ETLSamplePositionMasks {
+    kRowMask = 0xf,
+    kColMask = 0xf
+  };
+  enum ETLSampleDataShifts {
     kThreshShift = 31,
-    kModeShift = 30,
-    kColumnShift = 25,
-    kRowShift = 19,
-    kToAShift = 8,
-    kDataShift = 0
+    kEAShift = 29,
+    kToTShift = 21,
+    kToAShift = 12,
+    kCalShift = 3,
+    kHitFlagShift = 0
+  };
+  enum ETLSamplePositionShifts {
+    kRowShift = 0,
+    kColShift = 4
   };
 
   /**
      @short CTOR
    */
-  ETLSample() : value_(0) {}
-  ETLSample(uint32_t value) : value_(value) {}
-  ETLSample(const ETLSample& o) : value_(o.value_) {}
+  ETLSample() : value_(0), position_(0) {}
+  ETLSample(uint32_t value, uint8_t position) : value_(value), position_(position) {}
+  ETLSample(const ETLSample& o) : value_(o.value_), position_(o.position_) {}
 
   /**
      @short setters
    */
-  void setThreshold(bool thr) { setWord(thr, kThreshMask, kThreshShift); }
-  void setMode(bool mode) { setWord(mode, kModeMask, kModeShift); }
-  void setColumn(uint8_t col) { setWord(col, kColumnMask, kColumnShift); }
-  void setRow(uint8_t row) { setWord(row, kRowMask, kRowShift); }
-  void setToA(uint16_t toa) { setWord(toa, kToAMask, kToAShift); }
-  void setData(uint16_t data) { setWord(data, kDataMask, kDataShift); }
-  void set(bool thr, bool mode, uint16_t toa, uint16_t data, uint8_t row, uint8_t col) {
-    value_ = (((uint32_t)thr & kThreshMask) << kThreshShift | ((uint32_t)mode & kModeMask) << kModeShift |
-              ((uint32_t)col & kColumnMask) << kColumnShift | ((uint32_t)row & kRowMask) << kRowShift |
-              ((uint32_t)toa & kToAMask) << kToAShift | ((uint32_t)data & kDataMask) << kDataShift);
+  void setThreshold(bool thr) { setDataWord(thr, kThreshMask, kThreshShift); }
+  void setEA(uint16_t ea) { setDataWord(ea, kEAMask, kEAShift); }
+  void setToT(uint16_t tot) { setDataWord(tot, kToTMask, kToTShift); }
+  void setToA(uint16_t toa) { setDataWord(toa, kToAMask, kToAShift); }
+  void setCal(uint16_t cal) { setDataWord(data, kCalMask, kCalShift); }
+  void setHitFlag(uint16_t hitflag) { setDataWord(hitflag, kHitFlagMask, kHitFlagShift); }
+  void setRow(uint8_t row) { setPositionWord(row, kRowMask, kRowShift); }
+  void setCol(uint8_t col) { setPositionWord(col, kColMask, kColShift); }
+  void set(bool thr, bool ea, uint16_t tot, uint16_t toa, uint16_t cal, uint16_t hitflag, uint8_t row, uint8_t col) {
+    value_ = (((uint32_t)thr & kThreshMask) << kThreshShift | 
+              ((uint32_t)ea & kEAMask) << kEAShift |
+              ((uint32_t)tot & kToTMask) << kToTShift | 
+              ((uint32_t)toa & kToAMask) << kToAShift | 
+              ((uint32_t)cal & kCalMask) << kCalShift |
+              ((uint32_t)hitflag & kHitFlagMask) << kHitFlagShift);
+    position_ = (((uint8_t)row & kRowMask) << kRowShift |
+                 ((uint8_t)col & kColMask) << kColShift);
   }
   void print(std::ostream& out = std::cout) {
-    out << "(row,col) : (" << row() << ',' << column() << ") "
-        << "THR: " << threshold() << " Mode: " << mode() << " ToA: " << toa() << " Data: " << data() << " Raw=0x"
-        << std::hex << raw() << std::dec << std::endl;
+    out << "( row col ) : ( " << row() << ' ' << column() << " ) "
+        << "THR: " << threshold() << " EA: " << ea() << " ToT: " << tot() << " ToA: " << toa() << " Cal: " << cal() << " HitFlag: " << hitflag() 
+        << " Raw Data=0x" << std::hex << raw_data() << std::dec << std::endl;
   }
 
   /**
      @short getters
   */
-  uint32_t raw() const { return value_; }
+  uint32_t raw_data() const { return value_; }
+  uint32_t raw_position() const { return position_; }
   bool threshold() const { return ((value_ >> kThreshShift) & kThreshMask); }
-  bool mode() const { return ((value_ >> kModeShift) & kModeMask); }
-  uint32_t column() const { return ((value_ >> kColumnShift) & kColumnMask); }
-  uint32_t row() const { return ((value_ >> kRowShift) & kRowMask); }
+  uint32_t ea() const { return ((value_ >> kEAShift) & kEAMask); }
+  uint32_t tot() const { return ((value_ >> kToTShift) & kToTMask); }
   uint32_t toa() const { return ((value_ >> kToAShift) & kToAMask); }
-  uint32_t data() const { return ((value_ >> kDataShift) & kDataMask); }
-  uint32_t operator()() { return value_; }
+  uint32_t cal() const { return ((value_ >> kCalShift) & kCalMask); }
+  uint32_t hitflag() const { return ((value_ >> kHitFlagShift) & kHitFlagMask); }
+  uint8_t row() const { return ((position_ >> kRowShift) & kRowMask); }
+  uint8_t column() const { return ((position_ >> kColShift) & kColMask); }
+  //uint32_t operator()() { return value_; }
 
 private:
   /**
      @short wrapper to reset words at a given position
    */
-  void setWord(uint32_t word, uint32_t mask, uint32_t pos) {
+  void setDataWord(uint32_t word, uint32_t mask, uint32_t pos) {
     //clear required bits
     value_ &= ~(mask << pos);
     //now set the new value
     value_ |= ((word & mask) << pos);
   }
+  void setPositionWord(uint8_t word, uint8_t mask, uint8_t pos) {
+    //clear required bits
+    position_ &= ~(mask << pos);
+    //now set the new value
+    position_ |= ((word & mask) << pos);
+  }
 
   // a 32-bit word
   uint32_t value_;
+  uint8_t position_;
 };
 
 #endif
