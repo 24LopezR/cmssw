@@ -14,7 +14,10 @@
    <PartSelector path="//EndcapTimingLayer"/>
    <PartSelector path="//Disc1Timing"/>
    <PartSelector path="//Disc2Timing"/>
-   <PartSelector path="//Module"/>
+   <PartSelector path="//Module_Front_Left"/>
+   <PartSelector path="//Module_Front_Right"/>
+   <PartSelector path="//Module_Back_Left"/>
+   <PartSelector path="//Module_Back_Right"/>
    <PartSelector path="//Timingactive"/>
    <Parameter name="MtdDDStructure" value="EndcapTimingLayer"/>
 </SpecPar>

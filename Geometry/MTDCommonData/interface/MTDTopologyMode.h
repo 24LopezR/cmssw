@@ -28,8 +28,8 @@ namespace MTDTopologyMode {
   /** Returns BTLDetId::CrysLayout as a function of topology mode (to accomodate TDR/post TDR ETL scenarios). **/
 
   inline BTLDetId::CrysLayout crysLayoutFromTopoMode(const int& topoMode) {
-    if (topoMode < 0 || topoMode > static_cast<int>(Mode::btlv2etlv5)) {
-      throw cms::Exception("UnknownMTDtopoMode") << "Unknown MTD topology mode " << topoMode;
+    if (topoMode < 0 || topoMode > static_cast<int>(Mode::btlv2etlv8)) {
+      throw cms::Exception("UnknownMTDtopoMode") << "Unknown MTD topology mode :( " << topoMode;
     } else if (topoMode <= static_cast<int>(BTLDetId::CrysLayout::barphiflat)) {
       return static_cast<BTLDetId::CrysLayout>(topoMode);
     } else if (topoMode < static_cast<int>(Mode::btlv2etlv5)) {
@@ -42,8 +42,8 @@ namespace MTDTopologyMode {
   /** Returns ETLDetId::EtlLayout as a function of topology mode **/
 
   inline ETLDetId::EtlLayout etlLayoutFromTopoMode(const int& topoMode) {
-    if (topoMode < 0 || topoMode > static_cast<int>(Mode::btlv2etlv5)) {
-      throw cms::Exception("UnknownMTDtopoMode") << "Unknown MTD topology mode " << topoMode;
+    if (topoMode < 0 || topoMode > static_cast<int>(Mode::btlv2etlv8)) {
+      throw cms::Exception("UnknownMTDtopoMode") << "Unknown MTD topology mode :( " << topoMode;
     } else if (topoMode <= static_cast<int>(BTLDetId::CrysLayout::barphiflat)) {
       return ETLDetId::EtlLayout::tp;
     } else if (topoMode == static_cast<int>(Mode::btlv1etlv4)) {
