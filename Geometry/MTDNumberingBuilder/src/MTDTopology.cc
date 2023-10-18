@@ -1,5 +1,6 @@
 #include "Geometry/MTDNumberingBuilder/interface/MTDTopology.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "Geometry/MTDCommonData/interface/MTDTopologyMode.h"
 
 MTDTopology::MTDTopology(const int& topologyMode, const ETLValues& etl)
     : mtdTopologyMode_(topologyMode), etlVals_(etl) {}
@@ -12,8 +13,10 @@ bool MTDTopology::orderETLSector(const GeomDet*& gd1, const GeomDet*& gd2) {
     return det1.mtdRR() < det2.mtdRR();
   } else if (det1.modType() != det2.modType()) {
     return det1.modType() < det2.modType();
-  } else {
+  } else if (det1.module() != det2.module()) {
     return det1.module() < det2.module();
+  } else {
+    return det1.sensor() < det2.sensor();
   }
 }
 
@@ -26,9 +29,18 @@ size_t MTDTopology::hshiftETL(const uint32_t detid, const int horizontalShift) c
   }
   int hsh = horizontalShift > 0 ? 1 : -1;
 
+  int sensor = start_mod.sensor();
   int module = start_mod.module();
   uint32_t modtyp = start_mod.modType();
   uint32_t discside = start_mod.discSide();
+  int geomDetIndex;
+
+  // distinguish numbering in prev8 / v8 geometries
+  if (getMTDTopologyMode() == static_cast<int>(MTDTopologyMode::Mode::btlv2etlv8)) {
+    geomDetIndex = sensor * (2*module - 1);
+  } else {
+    geomDetIndex = module;
+  }
 
   // ilayout number coincides at present with disc face, use this
 
@@ -40,11 +52,11 @@ size_t MTDTopology::hshiftETL(const uint32_t detid, const int horizontalShift) c
   size_t nmodOffset = (modtyp == 1) ? 0 : etlVals_[discside].start_copy_[iLeft].back() - 1;
 
   for (size_t iloop = 0; iloop < etlVals_[discside].start_copy_[iHome].size() - 1; iloop++) {
-    if (module >= etlVals_[discside].start_copy_[iHome][iloop] &&
-        module < etlVals_[discside].start_copy_[iHome][iloop + 1]) {
-      if (module + hsh >= etlVals_[discside].start_copy_[iHome][iloop] &&
-          module + hsh < etlVals_[discside].start_copy_[iHome][iloop + 1]) {
-        return module + hsh - 1 + nmodOffset;
+    if (geomDetIndex >= etlVals_[discside].start_copy_[iHome][iloop] &&
+      geomDetIndex < etlVals_[discside].start_copy_[iHome][iloop + 1]) {
+      if (geomDetIndex + hsh >= etlVals_[discside].start_copy_[iHome][iloop] &&
+          geomDetIndex + hsh < etlVals_[discside].start_copy_[iHome][iloop + 1]) {
+        return geomDetIndex + hsh - 1 + nmodOffset;
       }
       break;
     }

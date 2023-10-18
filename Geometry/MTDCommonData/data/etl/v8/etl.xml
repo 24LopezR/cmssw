@@ -130,39 +130,39 @@
     <Constant name="xoffset_servicehybrid" value="1*mm"/>
 
     <Vector name="StartCopyNo_Front_Right" type="numeric" nEntries="28">
-      1, 7, 18, 33, 50, 69, 90, 112, 136, 161, 186, 207, 227, 247, 266,
-      285, 305, 325, 349, 374, 398, 421, 443, 463, 481, 497, 510, 517
+      1, 13, 35, 65, 99, 137, 179, 223, 271, 321, 371, 413, 453, 493, 531,
+      569, 609, 649, 697, 747, 795, 841, 885, 925, 961, 993, 1019, 1033
     </Vector>
 
     <Vector name="StartCopyNo_Front_Left" type="numeric" nEntries="28">
-      1, 8, 21, 37, 55, 75, 97, 120, 144, 169, 193, 213, 233, 252, 271,
-      291, 311, 332, 357, 382, 406, 428, 449, 468, 485, 500, 511, 517
+      1, 15, 41, 73, 109, 149, 193, 239, 287, 337, 385, 425, 465, 503, 541,
+      581, 621, 663, 713, 763, 811, 855, 897, 935, 969, 999, 1021, 1033
     </Vector>
 
     <Vector name="Offset_Front_Right" type="numeric" nEntries="28">
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 7, 8, 8, 7, 6, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 12, 14, 16, 16, 14, 12, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     </Vector>
 
     <Vector name="Offset_Front_Left" type="numeric" nEntries="28">
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 6, 7, 8, 8, 7, 6, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 12, 14, 16, 16, 14, 12, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     </Vector>
 
     <Vector name="StartCopyNo_Back_Right" type="numeric" nEntries="28">
-      1, 10, 23, 39, 57, 77, 99, 122, 146, 171, 194, 214, 234, 254, 273,
-      293, 313, 335, 360, 384, 407, 430, 451, 470, 487, 501, 511, 514
+      1, 19, 45, 77, 113, 153, 197, 243, 291, 341, 387, 427, 467, 507, 545,
+      585, 625, 669, 719, 767, 813, 859, 901, 939, 973, 1001, 1021, 1027
     </Vector>
 
     <Vector name="StartCopyNo_Back_Left" type="numeric" nEntries="28">
-      1, 4, 14, 28, 45, 64, 85, 107, 130, 154, 179, 201, 221, 241, 260,
-      280, 300, 320, 343, 368, 392, 415, 437, 457, 475, 491, 504, 513
+      1, 7, 27, 55, 89, 127, 169, 213, 259, 307, 357, 401, 441, 481, 519,
+      559, 599, 639, 685, 735, 783, 829, 873, 913, 949, 981, 1007, 1025
     </Vector>
 
     <Vector name="Offset_Back_Right" type="numeric" nEntries="28">
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 6, 7, 7, 8, 7, 6, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 12, 14, 14, 16, 14, 12, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     </Vector>
 
     <Vector name="Offset_Back_Left" type="numeric" nEntries="28">
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 6, 7, 8, 7, 7, 6, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 12, 14, 16, 14, 14, 12, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     </Vector>
 
   </ConstantsSection>
@@ -817,22 +817,22 @@
     <PosPart copyNumber="1">
       <rParent name="etl:Module_Front_Right"/>
       <rChild name="etl:glueLGAD"/>
-      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[glueLGAD_translation_z]" />
+      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[glueLGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="2">
       <rParent name="etl:Module_Front_Right"/>
       <rChild name="etl:glueLGAD"/>
-      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[glueLGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[glueLGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:Module_Front_Right"/>
       <rChild name="etl:BumpBonds"/>
-      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[bumpBonds_translation_z]" />
+      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[bumpBonds_translation_z]" />
     </PosPart>
     <PosPart copyNumber="2">
       <rParent name="etl:Module_Front_Right"/>
       <rChild name="etl:BumpBonds"/>
-      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[bumpBonds_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[bumpBonds_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:Module_Front_Right"/>
@@ -882,12 +882,12 @@
     <PosPart copyNumber="1">
       <rParent name="etl:Module_Front_Right"/>
       <rChild name="etl:LGAD"/>
-      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[LGAD_translation_z]" />
+      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[LGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="2">
       <rParent name="etl:Module_Front_Right"/>
       <rChild name="etl:LGAD"/>
-      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[LGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="[LGAD_translation_z]" />
     </PosPart>
     <!-- definition of LGAD active/substrate volumes -->
     <PosPart copyNumber="1">
@@ -920,22 +920,22 @@
     <PosPart copyNumber="1">
       <rParent name="etl:Module_Front_Left"/>
       <rChild name="etl:glueLGAD"/>
-      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="[glueLGAD_translation_z]" />
+      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="[glueLGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="2">
       <rParent name="etl:Module_Front_Left"/>
       <rChild name="etl:glueLGAD"/>
-      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="[glueLGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="[glueLGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:Module_Front_Left"/>
       <rChild name="etl:BumpBonds"/>
-      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="[bumpBonds_translation_z]" />
+      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="[bumpBonds_translation_z]" />
     </PosPart>
     <PosPart copyNumber="2">
       <rParent name="etl:Module_Front_Left"/>
       <rChild name="etl:BumpBonds"/>
-      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="[bumpBonds_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="[bumpBonds_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:Module_Front_Left"/>
@@ -985,12 +985,12 @@
     <PosPart copyNumber="1">
       <rParent name="etl:Module_Front_Left"/>
       <rChild name="etl:LGAD"/>
-      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="[LGAD_translation_z]" />
+      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="[LGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="2">
       <rParent name="etl:Module_Front_Left"/>
       <rChild name="etl:LGAD"/>
-      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="[LGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="[LGAD_translation_z]" />
     </PosPart>
 
     <!-- Elements composing Module_Back_Left -->
@@ -1012,22 +1012,22 @@
     <PosPart copyNumber="1">
       <rParent name="etl:Module_Back_Left"/>
       <rChild name="etl:glueLGAD"/>
-      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[glueLGAD_translation_z]" />
+      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[glueLGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="2">
       <rParent name="etl:Module_Back_Left"/>
       <rChild name="etl:glueLGAD"/>
-      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[glueLGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[glueLGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:Module_Back_Left"/>
       <rChild name="etl:BumpBonds"/>
-      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[bumpBonds_translation_z]" />
+      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[bumpBonds_translation_z]" />
     </PosPart>
     <PosPart copyNumber="2">
       <rParent name="etl:Module_Back_Left"/>
       <rChild name="etl:BumpBonds"/>
-      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[bumpBonds_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[bumpBonds_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:Module_Back_Left"/>
@@ -1078,13 +1078,13 @@
       <rParent name="etl:Module_Back_Left"/>
       <rChild name="etl:LGAD"/>
       <rRotation name="rotations:RPCD" />
-      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[LGAD_translation_z]" />
+      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[LGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="2">
       <rParent name="etl:Module_Back_Left"/>
       <rChild name="etl:LGAD"/>
       <rRotation name="rotations:RPCD" />
-      <Translation x="-1*[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[LGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="-1*[LGAD_translation_y]" z="-1*[LGAD_translation_z]" />
     </PosPart>
     
 
@@ -1108,22 +1108,22 @@
     <PosPart copyNumber="1">
       <rParent name="etl:Module_Back_Right"/>
       <rChild name="etl:glueLGAD"/>
-      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[glueLGAD_translation_z]" />
+      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[glueLGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="2">
       <rParent name="etl:Module_Back_Right"/>
       <rChild name="etl:glueLGAD"/>
-      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[glueLGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[glueLGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:Module_Back_Right"/>
       <rChild name="etl:BumpBonds"/>
-      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[bumpBonds_translation_z]" />
+      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[bumpBonds_translation_z]" />
     </PosPart>
     <PosPart copyNumber="2">
       <rParent name="etl:Module_Back_Right"/>
       <rChild name="etl:BumpBonds"/>
-      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[bumpBonds_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[bumpBonds_translation_z]" />
     </PosPart>
     <PosPart copyNumber="1">
       <rParent name="etl:Module_Back_Right"/>
@@ -1174,13 +1174,13 @@
       <rParent name="etl:Module_Back_Right"/>
       <rChild name="etl:LGAD"/>
       <rRotation name="rotations:RPCD" />
-      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[LGAD_translation_z]" />
+      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[LGAD_translation_z]" />
     </PosPart>
     <PosPart copyNumber="2">
       <rParent name="etl:Module_Back_Right"/>
       <rChild name="etl:LGAD"/>
       <rRotation name="rotations:RPCD" />
-      <Translation x="-1*[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[LGAD_translation_z]" />
+      <Translation x="[LGAD_translation_x]" y="[LGAD_translation_y]" z="-1*[LGAD_translation_z]" />
     </PosPart>
   </PosPartSection>
     
