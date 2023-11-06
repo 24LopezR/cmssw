@@ -37,7 +37,7 @@ size_t MTDTopology::hshiftETL(const uint32_t detid, const int horizontalShift) c
 
   // distinguish numbering in prev8 / v8 geometries
   if (getMTDTopologyMode() == static_cast<int>(MTDTopologyMode::Mode::btlv2etlv8)) {
-    geomDetIndex = sensor * (2*module - 1);
+    geomDetIndex = 2 * (module - 1) + sensor;
   } else {
     geomDetIndex = module;
   }
@@ -76,9 +76,18 @@ size_t MTDTopology::vshiftETL(const uint32_t detid, const int verticalShift, siz
   }
   int vsh = verticalShift > 0 ? 1 : -1;
 
+  int sensor = start_mod.sensor();
   int module = start_mod.module();
   uint32_t modtyp = start_mod.modType();
   uint32_t discside = start_mod.discSide();
+  int geomDetIndex;
+
+  // distinguish numbering in prev8 / v8 geometries
+  if (getMTDTopologyMode() == static_cast<int>(MTDTopologyMode::Mode::btlv2etlv8)) {
+    geomDetIndex = 2 * (module - 1) + sensor;
+  } else {
+    geomDetIndex = module;
+  }
 
   // ilayout number coincides at present with disc face, use this
 
@@ -93,8 +102,8 @@ size_t MTDTopology::vshiftETL(const uint32_t detid, const int verticalShift, siz
 
   size_t iBin(etlVals_[discside].start_copy_[iHome].size());  // never allowed
   for (size_t iloop = 0; iloop < etlVals_[discside].start_copy_[iHome].size() - 1; iloop++) {
-    if (module >= etlVals_[discside].start_copy_[iHome][iloop] &&
-        module < etlVals_[discside].start_copy_[iHome][iloop + 1]) {
+    if (geomDetIndex >= etlVals_[discside].start_copy_[iHome][iloop] &&
+        geomDetIndex < etlVals_[discside].start_copy_[iHome][iloop + 1]) {
       iBin = iloop;
       break;
     }
@@ -120,7 +129,7 @@ size_t MTDTopology::vshiftETL(const uint32_t detid, const int verticalShift, siz
 
   // determine the position of the other type corresponding to the same column of the home type
 
-  int vpos = etlVals_[discside].offset_[iHome][iBin] + module - etlVals_[discside].start_copy_[iHome][iBin] + 1;
+  int vpos = etlVals_[discside].offset_[iHome][iBin] + geomDetIndex - etlVals_[discside].start_copy_[iHome][iBin] + 1;
   if (vpos <= etlVals_[discside].offset_[iOther][iBinOther]) {
     closest = etlVals_[discside].start_copy_[iOther][iBinOther];
   } else if (vpos > etlVals_[discside].offset_[iOther][iBinOther] +
