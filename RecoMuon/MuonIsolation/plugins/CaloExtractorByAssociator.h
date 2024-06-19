@@ -25,6 +25,9 @@
 
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 
+#include "CondFormats/EcalObjects/interface/EcalPFRecHitThresholds.h"
+#include "CondFormats/DataRecord/interface/EcalPFRecHitThresholdsRcd.h"
+
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "MagneticField/Engine/interface/MagneticField.h"
@@ -107,6 +110,10 @@ namespace muonisolation {
 
     edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> bFieldToken_;
     edm::ESGetToken<CaloGeometry, CaloGeometryRecord> caloGeomToken_;
+
+    // Ecal noise thresholds
+    edm::ESGetToken<EcalPFRecHitThresholds, EcalPFRecHitThresholdsRcd> ecalPFRechitThresholdsToken_;
+    EcalPFRecHitThresholds* ecalThresholds = nullptr;
 
     //! flag to turn on/off printing of a time report
     bool thePrintTimeReport;

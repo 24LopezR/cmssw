@@ -18,6 +18,9 @@
 
 #include "DataFormats/Math/interface/deltaR.h"
 
+#include "CondFormats/EcalObjects/interface/EcalPFRecHitThresholds.h"
+#include "CondFormats/DataRecord/interface/EcalPFRecHitThresholdsRcd.h"
+
 using namespace edm;
 using namespace std;
 using namespace reco;
@@ -62,6 +65,7 @@ CaloExtractorByAssociator::CaloExtractorByAssociator(const ParameterSet& par, ed
 
   if (theUseRecHitsFlag) {
     caloGeomToken_ = iC.esConsumes();
+    ecalPFRechitThresholdsToken_ = iC.esConsumes();
   }
 }
 
@@ -101,6 +105,8 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
                                                             const Track& muon) const {
   theService->update(eventSetup);
   theAssociator->setPropagator(&*(theService->propagator(thePropagatorName)));
+
+  const EcalPFRecHitThresholds* ecalThresholds = &eventSetup.getData(ecalPFRechitThresholdsToken_);
 
   //! check configuration consistency
   //! could've been made at construction stage (fix later?)
@@ -169,8 +175,13 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       double cosTheta = 1. / cosh(eHitPos.eta());
       double energy = eHitCPtr->energy();
       double et = energy * cosTheta;
-      if (deltar0 > std::max(dRMax_CandDep, theDR_Max) ||
-          !(et > theThreshold_E && energy > 3 * noiseRecHit(eHitCPtr->detid())))
+      if (deltar0 > std::max(dRMax_CandDep, theDR_Max))
+          //!(et > theThreshold_E && energy > 3 * noiseRecHit(eHitCPtr->detid())))
+        continue;
+
+      // check noise thresholds
+      float rhThres = (ecalThresholds != nullptr) ? (*ecalThresholds)[eHitCPtr->detid()] : 0.f;
+      if (energy <= rhThres)
         continue;
 
       bool vetoHit = false;
