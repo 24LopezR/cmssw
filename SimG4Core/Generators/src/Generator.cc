@@ -33,6 +33,7 @@ Generator::Generator(const ParameterSet &p)
       theMaxPCut(p.getParameter<double>("MaxPCut")),
       theEtaCutForHector(p.getParameter<double>("EtaCutForHector")),
       verbose(p.getUntrackedParameter<int>("Verbosity", 0)),
+      fParticle(p.getUntrackedParameter<int>("PARTICLE", 1000013)),
       fLumiFilter(nullptr),
       evt_(nullptr),
       vtx_(nullptr),
@@ -141,7 +142,8 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
 
   unsigned int ng4vtx = 0;
   unsigned int ng4par = 0;
-
+  std::cout << "[Generator::HepMC2G4] " << fParticle << std::endl;
+  std::cout << "[Generator::HepMC2G4] Start vtx loop" << std::endl;
   for (HepMC::GenEvent::vertex_const_iterator vitr = evt->vertices_begin(); vitr != evt->vertices_end(); ++vitr) {
     // loop for vertex, is it a real vertex?
     // Set qvtx to true for any particles that should be propagated by GEANT,
@@ -149,6 +151,15 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
     // beampipe.
     G4bool qvtx = false;
     HepMC::GenVertex::particle_iterator pitr;
+    bool v = false;
+    for (pitr = (*vitr)->particles_begin(HepMC::children); pitr != (*vitr)->particles_end(HepMC::children); ++pitr) {
+      int pdg = (*pitr)->pdg_id();
+      if (abs(pdg)==13 or abs(pdg)==6000111 or abs(pdg)==6000113 or (abs(pdg) >= 1000000 && abs(pdg) < 4000000 && abs(pdg) != 3000022)) { v = true; break; }
+    }
+    if (v) {
+      (*vitr)->print();
+      std::cout << "[Generator::HepMC2G4] Start 1st particle loop" << std::endl;
+    }
     for (pitr = (*vitr)->particles_begin(HepMC::children); pitr != (*vitr)->particles_end(HepMC::children); ++pitr) {
       // For purposes of this function, the status is defined as follows:
       // 1:  particles are not decayed by generator
@@ -162,6 +173,7 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
         // checked: if its decay vertex is outside the beampipe, it will be
         // propagated by GEANT. Some Standard Model particles, e.g., K0, cannot
         // be propagated by GEANT, so do not change their status code.
+        if (v) { std::cout << "    [Generator::HepMC2G4] Changing status " << (*pitr)->status() << " to status 2." << std::endl; }
         status = 2;
       }
       if (status == 2 && abs(pdg) == 9900015) {
@@ -189,21 +201,25 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
           double xx = (*pitr)->end_vertex()->position().x();
           double yy = (*pitr)->end_vertex()->position().y();
           double r_dd = xx * xx + yy * yy;
+          if (v) { std::cout << "    [Generator::HepMC2G4] Status 2: r_dd(mm)= " << r_dd << ", theDecRCut2(mm)= " << theDecRCut2 << std::endl; }
           if (r_dd > theDecRCut2) {
             qvtx = true;
             if (verbose > 2)
               LogDebug("SimG4CoreGenerator")
                   << "GenVertex barcode = " << (*vitr)->barcode()
                   << " selected for GenParticle barcode = " << (*pitr)->barcode() << " radius = " << std::sqrt(r_dd);
+            if (v) { std::cout << "    [Generator::HepMC2G4] Status 2: (status=" << (*pitr)->status() << ") outside bp (r_dd=" << r_dd << " > " << theDecRCut2 << "). qvtx = " << qvtx << ". Break..." << std::endl; }
             break;
           }
         } else {
           // particles with status 2 without end_vertex are
           // equivalent to stable
           qvtx = true;
+          if (v) { std::cout << "    [Generator::HepMC2G4] Status 2 (status=" << (*pitr)->status() << ") stable. qvtx = " << qvtx << ". Break..." << std::endl; }
           break;
         }
       }
+      if (v) { std::cout << "    [Generator::HepMC2G4] Status " << status << " not selected. qvtx = " << qvtx << ". Next..." << std::endl; }
     }
 
     // if this vertex is inside fiductial volume inside the beam pipe
@@ -219,10 +235,15 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
 
     G4PrimaryVertex *g4vtx = new G4PrimaryVertex(x1, y1, z1, t1);
 
+    if (v) { std::cout << "[Generator::HepMC2G4] Start 2nd particle loop" << std::endl; }
     for (pitr = (*vitr)->particles_begin(HepMC::children); pitr != (*vitr)->particles_end(HepMC::children); ++pitr) {
       int status = (*pitr)->status();
       int pdg = (*pitr)->pdg_id();
       bool hasDecayVertex = (nullptr != (*pitr)->end_vertex());
+      if (v) {
+        (*pitr)->print();
+        std::cout << "    [Generator::HepMC2G4] hasDecayVertex: " << hasDecayVertex << std::endl;
+      }
 
       // Filter on allowed particle species if required
       if (fPDGFilter) {
@@ -247,6 +268,7 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
       }
       if (status > 3 && isExotic(pdg) && (!(isExoticNonDetectable(pdg)))) {
         status = hasDecayVertex ? 2 : 1;
+        if (v) { std::cout << "    [Generator::HepMC2G4] Change status to " << status << std::endl; }
       }
       if (status == 2 && abs(pdg) == 9900015) {
         status = 3;
@@ -264,11 +286,20 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
       double y2 = y1;
       double z2 = z1;
       double decay_length = 0.0;
+
+      double ximpact = x1;
+      double yimpact = y1;
+      double zimpact = z1;
+
+      if (v) { std::cout << "    [Generator::HepMC2G4] (x1,y1,z1)= (" << x1/cm << "," << y1/cm << "," << z1/cm << ") cm" << std::endl; }
       if (2 == status) {
         x2 = (*pitr)->end_vertex()->position().x();
         y2 = (*pitr)->end_vertex()->position().y();
         z2 = (*pitr)->end_vertex()->position().z();
         decay_length = std::sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1));
+        if (v) { std::cout << "    [Generator::HepMC2G4] (x2,y2,z2)= (" << x2/cm << "," << y2/cm << "," << z2/cm << ") cm" << std::endl; }
+      } else {
+        if (v) { std::cout << "    [Generator::HepMC2G4] (ximpact,yimpact,zimpact)= (" << ximpact/cm << "," << yimpact/cm << "," << zimpact/cm << ") cm" << std::endl; }
       }
 
       bool toBeAdded = !fFiductialCuts;
@@ -279,9 +310,7 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
       double ptot = std::sqrt(px * px + py * py + pz * pz);
       math::XYZTLorentzVector p(px, py, pz, (*pitr)->momentum().e());
 
-      double ximpact = x1;
-      double yimpact = y1;
-      double zimpact = z1;
+      if (v) { std::cout << "    [Generator::HepMC2G4] (px,py,pz)= (" << px << "," << py << "," << pz << ") GeV" << std::endl; }
 
       // protection against numerical problems for extremely low momenta
       // compute impact point at transition to Hector
@@ -300,6 +329,11 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
                                        << " rimpact(cm)= " << std::sqrt(rimpact2) / cm
                                        << " zimpact(cm)= " << zimpact / cm << " ptot(GeV)= " << ptot
                                        << " pz(GeV)= " << pz;
+      if (v) { std::cout << "    [Generator::HepMC2G4] Processing GenParticle barcode= " << (*pitr)->barcode() << " pdg= " << pdg
+                                       << "\n     status= " << (*pitr)->status() << " st= " << status
+                                       << "\n     rimpact(cm)= " << std::sqrt(rimpact2) / cm
+                                       << "\n     zimpact(cm)= " << zimpact / cm << " ptot(GeV)= " << ptot
+                                       << "\n     pz(GeV)= " << pz << " Z_hector(cm)= " << Z_hector / cm << std::endl; }
 
       // Particles of status 1 trasnported along the beam pipe
       // HECTOR transport of protons are done in corresponding PPS producer
@@ -372,6 +406,7 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
                                                    << " decay_length(cm)= " << decay_length / CLHEP::cm;
         }
       }
+      if (v) { std::cout << "    [Generator::HepMC2G4] toBeAdded: " << toBeAdded << std::endl; }
       if (toBeAdded) {
         G4PrimaryParticle *g4prim = new G4PrimaryParticle(pdg, px * GeV, py * GeV, pz * GeV);
 
@@ -393,7 +428,9 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
         setGenId(g4prim, (*pitr)->barcode());
 
         if (2 == status) {
+          if (v) { std::cout << "    [Generator::HepMC2G4] Call particleAssignDaughters" << std::endl; }
           particleAssignDaughters(g4prim, (HepMC::GenParticle *)*pitr, decay_length);
+          if (v) { std::cout << "    [Generator::HepMC2G4] End call particleAssignDaughters" << std::endl; }
         }
         if (verbose > 1)
           g4prim->Print();
@@ -403,9 +440,13 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
         edm::LogVerbatim("SimG4CoreGenerator") << "   " << ng4par << ". new Geant4 particle pdg= " << pdg
                                                << " Ptot(GeV/c)= " << ptot << " Pt= " << std::sqrt(px * px + py * py)
                                                << " status= " << status << "; dir= " << g4prim->GetMomentumDirection();
+        if (v) { std::cout << "    [Generator::HepMC2G4] " << ng4par << ". new Geant4 particle pdg= " << pdg
+                                               << " Ptot(GeV/c)= " << ptot << " Pt= " << std::sqrt(px * px + py * py)
+                                               << " status= " << status << "; dir= " << g4prim->GetMomentumDirection() << std::endl; }
       }
     }
 
+    if (v) { std::cout << "[Generator::HepMC2G4] " << ng4vtx << ". new G4 primary vertex pos=" << g4vtx->GetPosition() << ", n=" << g4vtx->GetNumberOfParticle() << std::endl; }
     if (verbose > 1)
       g4vtx->Print();
     g4evt->AddPrimaryVertex(g4vtx);
@@ -428,6 +469,9 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
 }
 
 void Generator::particleAssignDaughters(G4PrimaryParticle *g4p, HepMC::GenParticle *vp, double decaylength) {
+  bool v = false;
+  int pdg = vp->pdg_id();
+  if (abs(pdg)==13 or abs(pdg)==6000111 or abs(pdg)==6000113 or (abs(pdg) >= 1000000 && abs(pdg) < 4000000 && abs(pdg) != 3000022)) { v = true; }
   if (verbose > 1) {
     LogDebug("SimG4CoreGenerator") << "Special case of long decay length \n"
                                    << "Assign daughters with to mother with decaylength=" << decaylength / cm << " cm";
@@ -450,6 +494,7 @@ void Generator::particleAssignDaughters(G4PrimaryParticle *g4p, HepMC::GenPartic
   double y1 = vp->end_vertex()->position().y();
   double z1 = vp->end_vertex()->position().z();
 
+  if (v) { std::cout << "    [Generator::particleAssignDaughters] Start particle loop." << std::endl; }
   for (HepMC::GenVertex::particle_iterator vpdec = vp->end_vertex()->particles_begin(HepMC::children);
        vpdec != vp->end_vertex()->particles_end(HepMC::children);
        ++vpdec) {
@@ -464,6 +509,7 @@ void Generator::particleAssignDaughters(G4PrimaryParticle *g4p, HepMC::GenPartic
     if (g4daught->GetG4code() != nullptr) {
       g4daught->SetMass(g4daught->GetG4code()->GetPDGMass());
       g4daught->SetCharge(g4daught->GetG4code()->GetPDGCharge());
+      if (v) { std::cout << "      [Generator::particleAssignDaughters] mass(GeV)= " << (*vpdec)->generated_mass() << ", " <<  g4daught->GetMass() << std::endl; }
     }
 
     // V.I. do not use SetWeight but the same code
@@ -474,14 +520,17 @@ void Generator::particleAssignDaughters(G4PrimaryParticle *g4p, HepMC::GenPartic
     if (verbose > 1)
       LogDebug("SimG4CoreGenerator::::particleAssignDaughters")
           << "Assigning a " << (*vpdec)->pdg_id() << " as daughter of a " << vp->pdg_id() << " status=" << status;
+    if (v) { std::cout << "      [Generator::particleAssignDaughters] Assigning a " << (*vpdec)->pdg_id() << " as daughter of a " << vp->pdg_id() << " status=" << status << std::endl; }
 
-    if ((status == 2 || (status == 23 && std::abs(vp->pdg_id()) == 1000015) || (status > 50 && status < 100)) &&
+    if ((status == 2 || (status == 23 && std::abs(vp->pdg_id()) == fParticle) || (status > 50 && status < 100)) &&
         (*vpdec)->end_vertex() != nullptr) {
       double x2 = (*vpdec)->end_vertex()->position().x();
       double y2 = (*vpdec)->end_vertex()->position().y();
       double z2 = (*vpdec)->end_vertex()->position().z();
       double dd = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2));
+      if (v) { std::cout << "      [Generator::particleAssignDaughters] Call particleAssignDaughters from inside" << std::endl; }
       particleAssignDaughters(g4daught, *vpdec, dd);
+      if (v) { std::cout << "      [Generator::particleAssignDaughters] End call particleAssignDaughters from inside" << std::endl; }
     }
     (*vpdec)->set_status(1000 + status);
     g4p->SetDaughter(g4daught);

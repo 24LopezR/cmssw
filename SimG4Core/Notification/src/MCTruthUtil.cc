@@ -15,6 +15,11 @@ void MCTruthUtil::primary(G4Track *aTrack) {
 }
 
 void MCTruthUtil::secondary(G4Track *aTrack, const G4Track &mother, int flag) {
+  if (abs(aTrack->GetDefinition()->GetPDGEncoding()) == 13 or abs(mother.GetDefinition()->GetPDGEncoding()) == 13) {
+    std::cout << "[MCTruthUtil::secondary] flag=" << flag
+                                     << ", track_pdg=" << aTrack->GetDefinition()->GetPDGEncoding()
+                                     << ", mother_pdg=" << mother.GetDefinition()->GetPDGEncoding() << std::endl;
+  }
   auto motherInfo = static_cast<const TrackInformation *>(mother.GetUserInformation());
   auto trkInfo = new TrackInformation();
 

@@ -205,7 +205,9 @@ void OscarMTProducer::beginRun(const edm::Run&, const edm::EventSetup& es) {
   auto token = edm::ServiceRegistry::instance().presentToken();
   m_handoff.runAndWait([this, &es, token]() {
     edm::ServiceRegistry::Operate guard{token};
+    std::cout << "[OscarMTProducer::produce] m_runManagerWorker->beginRun(es)" << std::endl;
     m_runManagerWorker->beginRun(es);
+    std::cout << "[OscarMTProducer::produce] m_runManagerWorker->initializeG4(m_masterThread->runManagerMasterPtr(), es)" << std::endl;
     m_runManagerWorker->initializeG4(m_masterThread->runManagerMasterPtr(), es);
   });
   edm::LogVerbatim("SimG4CoreApplication") << "OscarMTProducer::beginRun done threadID=" << id;
@@ -241,7 +243,9 @@ void OscarMTProducer::produce(edm::Event& e, const edm::EventSetup& es) {
   m_handoff.runAndWait([this, &e, &es, &evt, token, engine]() {
     edm::ServiceRegistry::Operate guard{token};
     StaticRandomEngineSetUnset random(engine);
+    std::cout << "[OscarMTProducer::produce] START m_runManagerWorker->produce(e, es, m_masterThread->runManagerMaster())" << std::endl;
     evt = m_runManagerWorker->produce(e, es, m_masterThread->runManagerMaster());
+    std::cout << "[OscarMTProducer::produce] END m_runManagerWorker->produce(e, es, m_masterThread->runManagerMaster())" << std::endl;
   });
 
   std::unique_ptr<edm::SimTrackContainer> p1(new edm::SimTrackContainer);
@@ -249,26 +253,30 @@ void OscarMTProducer::produce(edm::Event& e, const edm::EventSetup& es) {
   evt->load(*p1);
   evt->load(*p2);
 
-  if (0 < m_verbose) {
-    edm::LogVerbatim("SimG4CoreApplication")
-        << "Produced " << p2->size() << " SimVertecies: position(cm), time(s), parentID, vertexID, processType";
-    if (1 < m_verbose) {
-      int nn = p2->size();
-      for (int i = 0; i < nn; ++i) {
-        edm::LogVerbatim("Vertex") << " " << i << ". " << (*p2)[i] << " " << (*p2)[i].processType();
-      }
-    }
-    edm::LogVerbatim("SimG4CoreApplication")
+  //if (0 < m_verbose) {
+    //edm::LogVerbatim("SimG4CoreApplication")
+    std::cout << "[OscarMTProducer::produce] "
+        << "Produced " << p2->size() << " SimVertecies: position(cm), time(s), parentID, vertexID, processType" << std::endl;
+    //if (1 < m_verbose) {
+    //  int nn = p2->size();
+    //  for (int i = 0; i < nn; ++i) {
+    //    std::cout << "[OscarMTProducer::produce]" << " " << i << ". " << (*p2)[i] << " " << (*p2)[i].processType() << std::endl;
+    //  }
+    //}
+    //edm::LogVerbatim("SimG4CoreApplication")
+    std::cout << "[OscarMTProducer::produce] "
         << "Produced " << p1->size()
-        << " SimTracks: pdg, 4-momentum(GeV), vertexID, mcTruthID, flagBoundary, trackID at boundary";
-    if (1 < m_verbose) {
+        << " SimTracks: pdg, 4-momentum(GeV), vertexID, mcTruthID, flagBoundary, trackID at boundary" << std::endl;
+    //if (1 < m_verbose) {
       int nn = p1->size();
+      int pdg;
       for (int i = 0; i < nn; ++i) {
-        edm::LogVerbatim("Track") << " " << i << ". " << (*p1)[i] << " " << (*p1)[i].crossedBoundary() << " "
-                                  << (*p1)[i].getIDAtBoundary();
+        pdg = abs((*p1)[i].type());
+        if ((pdg == 13 or (pdg > 1000000 and pdg < 2000000)) and (*p1)[i].momentum().mag() > 50) {std::cout << "[OscarMTProducer::produce]" << " " << i << ". " << (*p1)[i] << " " << (*p1)[i].crossedBoundary() << " "
+                                  << (*p1)[i].getIDAtBoundary() << std::endl;}
       }
-    }
-  }
+    //}
+  //}
   e.put(std::move(p1));
   e.put(std::move(p2));
 
@@ -276,9 +284,10 @@ void OscarMTProducer::produce(edm::Event& e, const edm::EventSetup& es) {
     const std::vector<std::string>& v = tracker->getNames();
     for (auto const& name : v) {
       std::unique_ptr<edm::PSimHitContainer> product(new edm::PSimHitContainer);
+      //std::cout << "[OscarMTProducer::produce]" << "Call tracker->fillHits(" << name << ")" << std::endl;
       tracker->fillHits(*product, name);
-      if (0 < m_verbose && product != nullptr && !product->empty())
-        edm::LogVerbatim("SimG4CoreApplication") << "Produced " << product->size() << " tracker hits <" << name << ">";
+      //if (0 < m_verbose && product != nullptr && !product->empty())
+      std::cout << "[OscarMTProducer::produce]" << "Produced " << product->size() << " tracker hits <" << name << ">" << std::endl;
       e.put(std::move(product), name);
     }
   }

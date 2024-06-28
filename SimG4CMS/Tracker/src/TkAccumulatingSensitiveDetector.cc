@@ -207,6 +207,7 @@ void TkAccumulatingSensitiveDetector::createHit(const G4Step* aStep) {
   //     this is not needed, because call to senstive detector happens
   //     only inside the volume
   const G4Track* theTrack = aStep->GetTrack();
+  int pdg = abs(theTrack->GetDefinition()->GetPDGEncoding());
   Local3DPoint theExitPoint = theRotation.get()->transformPoint(LocalPostStepPosition(aStep));
   Local3DPoint theEntryPoint;
   //
@@ -244,12 +245,16 @@ void TkAccumulatingSensitiveDetector::createHit(const G4Step* aStep) {
   if (!temp->storeTrack()) {
     // Go to the mother!
     theTrackIDInsideTheSimHit = theTrack->GetParentID();
-    LogDebug("TrackerSimDebug") << " TkAccumulatingSensitiveDetector::createHit(): setting the TrackID from "
-                                << theTrackIDInsideTheSimHit << " to the mother one " << theTrackIDInsideTheSimHit
-                                << " " << theEnergyLoss;
+    if (pdg == 13 or (pdg > 1000000 and pdg < 2000000)) {
+      //std::cout << "[TkAccumulatingSensitiveDetector::createHit] Setting the TrackID from "
+      //                          << theTrackID << " to the mother one " << theTrackIDInsideTheSimHit
+      //                          << " " << theEnergyLoss << std::endl;
+    }
   } else {
-    LogDebug("TrackerSimDebug") << " TkAccumulatingSensitiveDetector:createHit(): leaving the current TrackID "
-                                << theTrackIDInsideTheSimHit;
+    if (pdg == 13 or (pdg > 1000000 and pdg < 2000000)) {
+      //std::cout << "[TkAccumulatingSensitiveDetector::createHit] Leaving the current TrackID "
+      //                          << theTrackIDInsideTheSimHit << std::endl;
+    }
   }
 
   const G4ThreeVector& gmd = preStepPoint->GetMomentumDirection();
@@ -275,7 +280,7 @@ void TkAccumulatingSensitiveDetector::createHit(const G4Step* aStep) {
   lastTrack = theTrackID;
 
   // only for debugging
-  if (printHits) {
+  //if (printHits) {
     // point on Geant4 unit (mm)
     globalEntryPoint = ConvertToLocal3DPoint(preStepPoint->GetPosition());
     globalExitPoint = ConvertToLocal3DPoint(aStep->GetPostStepPoint()->GetPosition());
@@ -285,12 +290,21 @@ void TkAccumulatingSensitiveDetector::createHit(const G4Step* aStep) {
     pz = preStepPoint->GetMomentum().z() / CLHEP::GeV;
     oldVolume = preStepPoint->GetPhysicalVolume();
     pname = theTrack->GetDefinition()->GetParticleName();
-    LogDebug("TrackerSimDebug") << " Created PSimHit: " << pname << " " << mySimHit->detUnitId() << " "
-                                << mySimHit->trackId() << " " << theTrackID
-                                << " p= " << aStep->GetPreStepPoint()->GetMomentum().mag() << " "
+    float pttrack = sqrt(theTrack->GetMomentum().x() * theTrack->GetMomentum().x() + theTrack->GetMomentum().y() * theTrack->GetMomentum().y());
+    if (pdg == 13 or (pdg > 1000000 and pdg < 2000000)) {
+      if ((pttrack / CLHEP::GeV) > 50) {
+        G4PrimaryParticle* part = theTrack->GetDynamicParticle()->GetPrimaryParticle();
+        std::cout << "[TkAccumulatingSensitiveDetector::createHit] Particle " << part->GetPDGcode() << ", (p,pT)=(" << part->GetTotalMomentum()/CLHEP::GeV << "," << sqrt(part->GetPx()*part->GetPx()+part->GetPy()*part->GetPy())/CLHEP::GeV << "), trackID=" << part->GetTrackID() << std::endl;
+      
+        std::cout << "[TkAccumulatingSensitiveDetector::createHit] " << " Created PSimHit: " << pname << " " << mySimHit->detUnitId() << " "
+                                << mySimHit->trackId() << " " << theTrackID << " pT(track)=" << pttrack / CLHEP::GeV
+                                << " motherID=" << theTrack->GetParentID() 
+                                << " p=" << aStep->GetPreStepPoint()->GetMomentum().mag() / CLHEP::GeV << " "
                                 << mySimHit->energyLoss() << " " << mySimHit->entryPoint() << " "
-                                << mySimHit->exitPoint();
-  }
+                                << mySimHit->exitPoint() << std::endl;
+      }
+    }
+  //}
 }
 
 void TkAccumulatingSensitiveDetector::updateHit(const G4Step* aStep) {
