@@ -26,5 +26,6 @@
   <use name="DataFormats/PatCandidates"/>
   <use name="CondFormats/EcalObjects"/>
   <use name="CondFormats/DataRecord"/>
+  <use name="CondTools/Hcal"/>
   <flags EDM_PLUGIN="1"/>
 </library>

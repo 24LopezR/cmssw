@@ -20,6 +20,8 @@
 
 #include "CondFormats/EcalObjects/interface/EcalPFRecHitThresholds.h"
 #include "CondFormats/DataRecord/interface/EcalPFRecHitThresholdsRcd.h"
+#include "CondFormats/DataRecord/interface/HcalPFCutsRcd.h"
+#include "CondTools/Hcal/interface/HcalPFCutsHandler.h"
 
 using namespace edm;
 using namespace std;
@@ -63,9 +65,17 @@ CaloExtractorByAssociator::CaloExtractorByAssociator(const ParameterSet& par, ed
   theAssociatorParameters->loadParameters(par.getParameter<edm::ParameterSet>("TrackAssociatorParameters"), iC);
   theAssociator = new TrackDetectorAssociator();
 
+  ecalRecHitThresh_ = par.getParameter<bool>("EcalRecHitThresh");
+  hcalCutsFromDB_= par.getParameter<bool>("HcalCutsFromDB");
   if (theUseRecHitsFlag) {
     caloGeomToken_ = iC.esConsumes();
-    ecalPFRechitThresholdsToken_ = iC.esConsumes();
+    if (ecalRecHitThresh_) {
+      ecalPFRechitThresholdsToken_ = iC.esConsumes();
+    }
+    if (hcalCutsFromDB_) {
+      //hcalCutsToken_ = iC.esConsumes<HcalPFCuts, HcalPFCutsRcd, edm::Transition::BeginRun>(edm::ESInputTag("", "withTopo"));
+      hcalCutsToken_ = iC.esConsumes();
+    }
   }
 }
 
@@ -106,7 +116,10 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
   theService->update(eventSetup);
   theAssociator->setPropagator(&*(theService->propagator(thePropagatorName)));
 
+  //if (ecalRecHitThresh_)
   const EcalPFRecHitThresholds* ecalThresholds = &eventSetup.getData(ecalPFRechitThresholdsToken_);
+  //if (hcalCutsFromDB_)
+  const HcalPFCuts* hcalCuts = &eventSetup.getData(hcalCutsToken_);
 
   //! check configuration consistency
   //! could've been made at construction stage (fix later?)
@@ -179,10 +192,14 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
           //!(et > theThreshold_E && energy > 3 * noiseRecHit(eHitCPtr->detid())))
         continue;
 
-      // check noise thresholds
-      float rhThres = (ecalThresholds != nullptr) ? (*ecalThresholds)[eHitCPtr->detid()] : 0.f;
-      if (energy <= rhThres)
-        continue;
+      if (ecalThresholds != nullptr) { // use thresholds from rechit
+        float rhThres = (ecalThresholds != nullptr) ? (*ecalThresholds)[eHitCPtr->detid()] : 0.f;
+        if (energy <= rhThres)
+          continue;
+      } else { // use thresholds from config
+        if (et <= theThreshold_E || energy <= 3 * noiseRecHit(eHitCPtr->detid()))
+          continue;
+      }
 
       bool vetoHit = false;
       double deltar = reco::deltaR(mInfo.trkGlobPosAtEcal, eHitPos);
@@ -218,12 +235,21 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       const HBHERecHit* hHitCPtr = *hHitCI;
       GlobalPoint hHitPos = caloGeom.getPosition(hHitCPtr->detid());
       double deltar0 = reco::deltaR(muon, hHitPos);
-      double cosTheta = 1. / cosh(hHitPos.eta());
+      double scale = std::sin(2. * std::atan(std::exp(-hHitPos.eta())));
       double energy = hHitCPtr->energy();
-      double et = energy * cosTheta;
-      if (deltar0 > std::max(dRMax_CandDep, theDR_Max) ||
-          !(et > theThreshold_H && energy > 3 * noiseRecHit(hHitCPtr->detid())))
+      double et = energy * scale;
+      if (deltar0 > std::max(dRMax_CandDep, theDR_Max))
         continue;
+
+      // check Hcal Cuts from DB
+      if (hcalCuts != nullptr) { 
+        const HcalPFCut *item = hcalCuts->getValues(hHitCPtr->id().rawId());
+        if (energy <= item->noiseThreshold())
+          continue;
+      } else {
+        if (et <= theThreshold_H || energy <= 3 * noiseRecHit(hHitCPtr->detid()))
+          continue;
+      }
 
       bool vetoHit = false;
       double deltar = reco::deltaR(mInfo.trkGlobPosAtHcal, hHitPos);

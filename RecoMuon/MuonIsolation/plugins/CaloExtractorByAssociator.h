@@ -27,6 +27,8 @@
 
 #include "CondFormats/EcalObjects/interface/EcalPFRecHitThresholds.h"
 #include "CondFormats/DataRecord/interface/EcalPFRecHitThresholdsRcd.h"
+#include "CondFormats/DataRecord/interface/HcalPFCutsRcd.h"
+#include "CondTools/Hcal/interface/HcalPFCutsHandler.h"
 
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
@@ -113,7 +115,13 @@ namespace muonisolation {
 
     // Ecal noise thresholds
     edm::ESGetToken<EcalPFRecHitThresholds, EcalPFRecHitThresholdsRcd> ecalPFRechitThresholdsToken_;
+    bool ecalRecHitThresh_;
     EcalPFRecHitThresholds* ecalThresholds = nullptr;
+
+    // following are needed to grab HCal thresholds from GT
+    edm::ESGetToken<HcalPFCuts, HcalPFCutsRcd> hcalCutsToken_;
+    bool hcalCutsFromDB_;
+    HcalPFCuts* hcalCuts = nullptr;
 
     //! flag to turn on/off printing of a time report
     bool thePrintTimeReport;
