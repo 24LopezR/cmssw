@@ -47,11 +47,7 @@ CaloExtractorByAssociator::CaloExtractorByAssociator(const ParameterSet& par, ed
       theThreshold_E(par.getParameter<double>("Threshold_E")),
       theThreshold_H(par.getParameter<double>("Threshold_H")),
       theThreshold_HO(par.getParameter<double>("Threshold_HO")),
-      //theThresholds_eHB(par.getParameter<std::vector<double>>("Thresholds_eHB")),
-      //theThresholds_etHB(par.getParameter<std::vector<double>>("Thresholds_etHB")),
       theMaxSeverityHB(par.getParameter<int>("MaxSeverityHB")),
-      //theThresholds_eHE(par.getParameter<std::vector<double>>("Thresholds_eHE")),
-      //theThresholds_etHE(par.getParameter<std::vector<double>>("Thresholds_etHE")),
       theMaxSeverityHE(par.getParameter<int>("MaxSeverityHE")),
       theDR_Veto_E(par.getParameter<double>("DR_Veto_E")),
       theDR_Veto_H(par.getParameter<double>("DR_Veto_H")),
@@ -130,14 +126,11 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
   theService->update(eventSetup);
   theAssociator->setPropagator(&*(theService->propagator(thePropagatorName)));
 
-  if (ecalRecHitThresh_)
-    const EcalPFRecHitThresholds* ecalThresholds = &eventSetup.getData(ecalPFRechitThresholdsToken_);
-  if (hcalCutsFromDB_)
-    const HcalPFCuts* hcalCuts = &eventSetup.getData(hcalCutsToken_);
+  const EcalPFRecHitThresholds* ecalThresholds = &eventSetup.getData(ecalPFRechitThresholdsToken_);
+  const HcalPFCuts* hcalCuts = &eventSetup.getData(hcalCutsToken_);
   const HcalTopology* hcalTopology_ = &eventSetup.getData(hcalTopologyToken_);
   const HcalChannelQuality* hcalChStatus_ = &eventSetup.getData(hcalChannelQualityToken_);
   const HcalSeverityLevelComputer* hcalSevLvlComputer_ = &eventSetup.getData(hcalSevLvlComputerToken_);
-
 
   //! check configuration consistency
   //! could've been made at construction stage (fix later?)
@@ -191,12 +184,6 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
     depHOcal = IsoDeposit(dirTmp);
     depHOcal.setVeto(Veto(dirTmp, dRtmp));
   }
- 
-  /**if (theUseEcalRecHitsFlag or theUseHcalRecHitsFlag or theUseHORecHitsFlag) {
-    //! do things based on rec-hits here
-    //! too much copy-pasting now (refactor later?)
-    auto const& caloGeom = eventSetup.getData(caloGeomToken_);
-  }**/
 
   if (theUseEcalRecHitsFlag) {
     //Ecal
@@ -253,7 +240,6 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
   if (theUseHcalRecHitsFlag) {
     //Hcal
     auto const& caloGeom = eventSetup.getData(caloGeomToken_);
-    //std::cout << "[CaloExtractorByAssociator::deposits] Begin loop" << std::endl;
     std::vector<const HBHERecHit*>::const_iterator hHitCI = mInfo.hcalRecHits.begin();
     for (; hHitCI != mInfo.hcalRecHits.end(); ++hHitCI) {
       const HBHERecHit* hHitCPtr = *hHitCI;
@@ -262,14 +248,12 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       double cosTheta = 1. / cosh(hHitPos.eta());
       double energy = hHitCPtr->energy();
       double et = energy * cosTheta;
-      //std::cout << "Candidate deposit: (eta, phi, E, Et)=(" << hHitPos.eta() << "," << hHitPos.phi() << "," << energy << "," << et << ")" << std::endl;
       if (deltaR2 > std::max(dRMax_CandDep, theDR_Max))
         continue;
 
       // check Hcal Cuts from DB
       if (hcalCuts != nullptr) { 
         const HcalPFCut *item = hcalCuts->getValues(hHitCPtr->id().rawId());
-        //std::cout << "    Noise threshold: " << item->noiseThreshold() << std::endl;
         if (energy <= item->noiseThreshold())
           continue;
       } else {
@@ -277,15 +261,12 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
           continue;
       }
 
-      // From Egamma
       const HcalDetId hid(hHitCPtr->detid()); 
-      const int hd = hid.depth();
       DetId did = hcalTopology_->idFront(hid);
       const uint32_t flag = hHitCPtr->flags();
       const uint32_t dbflag = hcalChStatus_->getValues(did)->getValue();
       bool recovered = hcalSevLvlComputer_->recoveredRecHit(did, flag);
       int severity = hcalSevLvlComputer_->getSeverityLevel(did, flag, dbflag);
-      //std::cout << "     severity: " << severity << ", depth: " << hd << std::endl;
      
       const bool goodHB = hid.subdet() == HcalBarrel and (severity <= theMaxSeverityHB or recovered);
       const bool goodHE = hid.subdet() == HcalEndcap and (severity <= theMaxSeverityHE or recovered);
@@ -315,7 +296,6 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       if (vetoHit) {
         depHcal.addCandEnergy(et);
       } else {
-        //std::cout << "Added deposit. Next" << std::endl;
         depHcal.addDeposit(reco::isodeposit::Direction(hHitPos.eta(), hHitPos.phi()), et);
       }
     }

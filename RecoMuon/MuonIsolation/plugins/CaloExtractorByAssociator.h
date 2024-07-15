@@ -86,11 +86,7 @@ namespace muonisolation {
     double theThreshold_E;
     double theThreshold_H;
     double theThreshold_HO;
-    //std::vector<double> theThresholds_eHB;
-    //std::vector<double> theThresholds_etHB;
     int theMaxSeverityHB;
-    //std::vector<double> theThresholds_eHE;
-    //std::vector<double> theThresholds_etHE;
     int theMaxSeverityHE;
 
     //! cone sizes inside which the Et (towers) are not counted
@@ -139,9 +135,6 @@ namespace muonisolation {
     edm::ESGetToken<HcalTopology, HcalRecNumberingRecord> hcalTopologyToken_;
     edm::ESGetToken<HcalChannelQuality, HcalChannelQualityRcd> hcalChannelQualityToken_;
     edm::ESGetToken<HcalSeverityLevelComputer, HcalSeverityLevelComputerRcd> hcalSevLvlComputerToken_;
-    /**HcalTopology* hcalTopology_;
-    HcalChannelQuality* hcalChStatus_;
-    HcalSeverityLevelComputer* hcalSevLvlComputer_;**/
 
     //! flag to turn on/off printing of a time report
     bool thePrintTimeReport;
