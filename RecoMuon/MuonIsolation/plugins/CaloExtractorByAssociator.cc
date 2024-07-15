@@ -22,6 +22,10 @@
 #include "CondFormats/DataRecord/interface/EcalPFRecHitThresholdsRcd.h"
 #include "CondFormats/DataRecord/interface/HcalPFCutsRcd.h"
 #include "CondTools/Hcal/interface/HcalPFCutsHandler.h"
+#include "RecoLocalCalo/HcalRecAlgos/interface/HcalSeverityLevelComputer.h"
+#include "RecoLocalCalo/HcalRecAlgos/interface/HcalSeverityLevelComputerRcd.h"
+#include "CondFormats/HcalObjects/interface/HcalChannelQuality.h"
+#include "CondFormats/DataRecord/interface/HcalChannelQualityRcd.h"
 
 using namespace edm;
 using namespace std;
@@ -34,13 +38,21 @@ namespace {
 }
 
 CaloExtractorByAssociator::CaloExtractorByAssociator(const ParameterSet& par, edm::ConsumesCollector&& iC)
-    : theUseRecHitsFlag(par.getParameter<bool>("UseRecHitsFlag")),
+    : theUseEcalRecHitsFlag(par.getParameter<bool>("UseEcalRecHitsFlag")),
+      theUseHcalRecHitsFlag(par.getParameter<bool>("UseHcalRecHitsFlag")),
+      theUseHORecHitsFlag(par.getParameter<bool>("UseHORecHitsFlag")),
       theDepositLabel(par.getUntrackedParameter<string>("DepositLabel")),
       theDepositInstanceLabels(par.getParameter<std::vector<std::string> >("DepositInstanceLabels")),
       thePropagatorName(par.getParameter<std::string>("PropagatorName")),
       theThreshold_E(par.getParameter<double>("Threshold_E")),
       theThreshold_H(par.getParameter<double>("Threshold_H")),
       theThreshold_HO(par.getParameter<double>("Threshold_HO")),
+      //theThresholds_eHB(par.getParameter<std::vector<double>>("Thresholds_eHB")),
+      //theThresholds_etHB(par.getParameter<std::vector<double>>("Thresholds_etHB")),
+      theMaxSeverityHB(par.getParameter<int>("MaxSeverityHB")),
+      //theThresholds_eHE(par.getParameter<std::vector<double>>("Thresholds_eHE")),
+      //theThresholds_etHE(par.getParameter<std::vector<double>>("Thresholds_etHE")),
+      theMaxSeverityHE(par.getParameter<int>("MaxSeverityHE")),
       theDR_Veto_E(par.getParameter<double>("DR_Veto_E")),
       theDR_Veto_H(par.getParameter<double>("DR_Veto_H")),
       theDR_Veto_HO(par.getParameter<double>("DR_Veto_HO")),
@@ -67,16 +79,18 @@ CaloExtractorByAssociator::CaloExtractorByAssociator(const ParameterSet& par, ed
 
   ecalRecHitThresh_ = par.getParameter<bool>("EcalRecHitThresh");
   hcalCutsFromDB_= par.getParameter<bool>("HcalCutsFromDB");
-  if (theUseRecHitsFlag) {
+  if (theUseEcalRecHitsFlag or theUseHcalRecHitsFlag or theUseHORecHitsFlag) {
     caloGeomToken_ = iC.esConsumes();
     if (ecalRecHitThresh_) {
       ecalPFRechitThresholdsToken_ = iC.esConsumes();
     }
     if (hcalCutsFromDB_) {
-      //hcalCutsToken_ = iC.esConsumes<HcalPFCuts, HcalPFCutsRcd, edm::Transition::BeginRun>(edm::ESInputTag("", "withTopo"));
       hcalCutsToken_ = iC.esConsumes();
     }
   }
+  hcalTopologyToken_ = iC.esConsumes();
+  hcalChannelQualityToken_ = iC.esConsumes(edm::ESInputTag("", "withTopo"));
+  hcalSevLvlComputerToken_ = iC.esConsumes();
 }
 
 CaloExtractorByAssociator::~CaloExtractorByAssociator() {
@@ -116,10 +130,14 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
   theService->update(eventSetup);
   theAssociator->setPropagator(&*(theService->propagator(thePropagatorName)));
 
-  //if (ecalRecHitThresh_)
-  const EcalPFRecHitThresholds* ecalThresholds = &eventSetup.getData(ecalPFRechitThresholdsToken_);
-  //if (hcalCutsFromDB_)
-  const HcalPFCuts* hcalCuts = &eventSetup.getData(hcalCutsToken_);
+  if (ecalRecHitThresh_)
+    const EcalPFRecHitThresholds* ecalThresholds = &eventSetup.getData(ecalPFRechitThresholdsToken_);
+  if (hcalCutsFromDB_)
+    const HcalPFCuts* hcalCuts = &eventSetup.getData(hcalCutsToken_);
+  const HcalTopology* hcalTopology_ = &eventSetup.getData(hcalTopologyToken_);
+  const HcalChannelQuality* hcalChStatus_ = &eventSetup.getData(hcalChannelQualityToken_);
+  const HcalSeverityLevelComputer* hcalSevLvlComputer_ = &eventSetup.getData(hcalSevLvlComputerToken_);
+
 
   //! check configuration consistency
   //! could've been made at construction stage (fix later?)
@@ -173,22 +191,25 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
     depHOcal = IsoDeposit(dirTmp);
     depHOcal.setVeto(Veto(dirTmp, dRtmp));
   }
-
-  if (theUseRecHitsFlag) {
+ 
+  /**if (theUseEcalRecHitsFlag or theUseHcalRecHitsFlag or theUseHORecHitsFlag) {
     //! do things based on rec-hits here
     //! too much copy-pasting now (refactor later?)
     auto const& caloGeom = eventSetup.getData(caloGeomToken_);
+  }**/
 
+  if (theUseEcalRecHitsFlag) {
     //Ecal
+    auto const& caloGeom = eventSetup.getData(caloGeomToken_);
     std::vector<const EcalRecHit*>::const_iterator eHitCI = mInfo.ecalRecHits.begin();
     for (; eHitCI != mInfo.ecalRecHits.end(); ++eHitCI) {
       const EcalRecHit* eHitCPtr = *eHitCI;
       GlobalPoint eHitPos = caloGeom.getPosition(eHitCPtr->detid());
-      double deltar0 = reco::deltaR(muon, eHitPos);
+      double deltaR2 = reco::deltaR2(muon, eHitPos);
       double cosTheta = 1. / cosh(eHitPos.eta());
       double energy = eHitCPtr->energy();
       double et = energy * cosTheta;
-      if (deltar0 > std::max(dRMax_CandDep, theDR_Max))
+      if (deltaR2 > std::max(dRMax_CandDep, theDR_Max))
           //!(et > theThreshold_E && energy > 3 * noiseRecHit(eHitCPtr->detid())))
         continue;
 
@@ -202,10 +223,9 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       }
 
       bool vetoHit = false;
-      double deltar = reco::deltaR(mInfo.trkGlobPosAtEcal, eHitPos);
       //! first check if the hit is inside the veto cone by dR-alone
-      if (deltar < theDR_Veto_E) {
-        LogDebug("RecoMuon|CaloExtractorByAssociator") << " >>> Veto ECAL hit: Calo deltaR= " << deltar;
+      if (deltaR2 < theDR_Veto_E) {
+        LogDebug("RecoMuon|CaloExtractorByAssociator") << " >>> Veto ECAL hit: Calo deltaR2= " << deltaR2;
         LogDebug("RecoMuon|CaloExtractorByAssociator")
             << " >>> Calo eta phi ethcal: " << eHitPos.eta() << " " << eHitPos.phi() << " " << et;
         vetoHit = true;
@@ -219,7 +239,7 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       }
 
       //check theDR_Max only here to keep vetoHits being added to the veto energy
-      if (deltar0 > theDR_Max && !vetoHit)
+      if (deltaR2 > theDR_Max && !vetoHit)
         continue;
 
       if (vetoHit) {
@@ -228,22 +248,28 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
         depEcal.addDeposit(reco::isodeposit::Direction(eHitPos.eta(), eHitPos.phi()), et);
       }
     }
+  }
 
+  if (theUseHcalRecHitsFlag) {
     //Hcal
+    auto const& caloGeom = eventSetup.getData(caloGeomToken_);
+    //std::cout << "[CaloExtractorByAssociator::deposits] Begin loop" << std::endl;
     std::vector<const HBHERecHit*>::const_iterator hHitCI = mInfo.hcalRecHits.begin();
     for (; hHitCI != mInfo.hcalRecHits.end(); ++hHitCI) {
       const HBHERecHit* hHitCPtr = *hHitCI;
       GlobalPoint hHitPos = caloGeom.getPosition(hHitCPtr->detid());
-      double deltar0 = reco::deltaR(muon, hHitPos);
-      double scale = std::sin(2. * std::atan(std::exp(-hHitPos.eta())));
+      double deltaR2 = reco::deltaR2(muon, hHitPos);
+      double cosTheta = 1. / cosh(hHitPos.eta());
       double energy = hHitCPtr->energy();
-      double et = energy * scale;
-      if (deltar0 > std::max(dRMax_CandDep, theDR_Max))
+      double et = energy * cosTheta;
+      //std::cout << "Candidate deposit: (eta, phi, E, Et)=(" << hHitPos.eta() << "," << hHitPos.phi() << "," << energy << "," << et << ")" << std::endl;
+      if (deltaR2 > std::max(dRMax_CandDep, theDR_Max))
         continue;
 
       // check Hcal Cuts from DB
       if (hcalCuts != nullptr) { 
         const HcalPFCut *item = hcalCuts->getValues(hHitCPtr->id().rawId());
+        //std::cout << "    Noise threshold: " << item->noiseThreshold() << std::endl;
         if (energy <= item->noiseThreshold())
           continue;
       } else {
@@ -251,11 +277,25 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
           continue;
       }
 
+      // From Egamma
+      const HcalDetId hid(hHitCPtr->detid()); 
+      const int hd = hid.depth();
+      DetId did = hcalTopology_->idFront(hid);
+      const uint32_t flag = hHitCPtr->flags();
+      const uint32_t dbflag = hcalChStatus_->getValues(did)->getValue();
+      bool recovered = hcalSevLvlComputer_->recoveredRecHit(did, flag);
+      int severity = hcalSevLvlComputer_->getSeverityLevel(did, flag, dbflag);
+      //std::cout << "     severity: " << severity << ", depth: " << hd << std::endl;
+     
+      const bool goodHB = hid.subdet() == HcalBarrel and (severity <= theMaxSeverityHB or recovered);
+      const bool goodHE = hid.subdet() == HcalEndcap and (severity <= theMaxSeverityHE or recovered);
+      if (!goodHB and !goodHE)
+        continue;
+
       bool vetoHit = false;
-      double deltar = reco::deltaR(mInfo.trkGlobPosAtHcal, hHitPos);
       //! first check if the hit is inside the veto cone by dR-alone
-      if (deltar < theDR_Veto_H) {
-        LogDebug("RecoMuon|CaloExtractorByAssociator") << " >>> Veto HBHE hit: Calo deltaR= " << deltar;
+      if (deltaR2 < theDR_Veto_H) {
+        LogDebug("RecoMuon|CaloExtractorByAssociator") << " >>> Veto HBHE hit: Calo deltaR2= " << deltaR2;
         LogDebug("RecoMuon|CaloExtractorByAssociator")
             << " >>> Calo eta phi ethcal: " << hHitPos.eta() << " " << hHitPos.phi() << " " << et;
         vetoHit = true;
@@ -269,34 +309,37 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       }
 
       //check theDR_Max only here to keep vetoHits being added to the veto energy
-      if (deltar0 > theDR_Max && !vetoHit)
+      if (deltaR2 > theDR_Max && !vetoHit)
         continue;
 
       if (vetoHit) {
         depHcal.addCandEnergy(et);
       } else {
+        //std::cout << "Added deposit. Next" << std::endl;
         depHcal.addDeposit(reco::isodeposit::Direction(hHitPos.eta(), hHitPos.phi()), et);
       }
     }
+  }
 
+  if (theUseHORecHitsFlag) {
     //HOcal
+    auto const& caloGeom = eventSetup.getData(caloGeomToken_);
     std::vector<const HORecHit*>::const_iterator hoHitCI = mInfo.hoRecHits.begin();
     for (; hoHitCI != mInfo.hoRecHits.end(); ++hoHitCI) {
       const HORecHit* hoHitCPtr = *hoHitCI;
       GlobalPoint hoHitPos = caloGeom.getPosition(hoHitCPtr->detid());
-      double deltar0 = reco::deltaR(muon, hoHitPos);
+      double deltaR2 = reco::deltaR2(muon, hoHitPos);
       double cosTheta = 1. / cosh(hoHitPos.eta());
       double energy = hoHitCPtr->energy();
       double et = energy * cosTheta;
-      if (deltar0 > std::max(dRMax_CandDep, theDR_Max) ||
+      if (deltaR2 > std::max(dRMax_CandDep, theDR_Max) ||
           !(et > theThreshold_HO && energy > 3 * noiseRecHit(hoHitCPtr->detid())))
         continue;
 
       bool vetoHit = false;
-      double deltar = reco::deltaR(mInfo.trkGlobPosAtHO, hoHitPos);
       //! first check if the hit is inside the veto cone by dR-alone
-      if (deltar < theDR_Veto_HO) {
-        LogDebug("RecoMuon|CaloExtractorByAssociator") << " >>> Veto HO hit: Calo deltaR= " << deltar;
+      if (deltaR2 < theDR_Veto_HO) {
+        LogDebug("RecoMuon|CaloExtractorByAssociator") << " >>> Veto HO hit: Calo deltaR2= " << deltaR2;
         LogDebug("RecoMuon|CaloExtractorByAssociator")
             << " >>> Calo eta phi ethcal: " << hoHitPos.eta() << " " << hoHitPos.phi() << " " << et;
         vetoHit = true;
@@ -310,7 +353,7 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       }
 
       //check theDR_Max only here to keep vetoHits being added to the veto energy
-      if (deltar0 > theDR_Max && !vetoHit)
+      if (deltaR2 > theDR_Max && !vetoHit)
         continue;
 
       if (vetoHit) {
@@ -320,7 +363,9 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       }
     }
 
-  } else {
+  }
+
+  if (!theUseEcalRecHitsFlag or !theUseHcalRecHitsFlag or !theUseHORecHitsFlag) { 
     //! use calo towers
     std::vector<const CaloTower*>::const_iterator calCI = mInfo.towers.begin();
     for (; calCI != mInfo.towers.end(); ++calCI) {
@@ -387,19 +432,19 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
 
       reco::isodeposit::Direction towerDir(calCPtr->eta(), calCPtr->phi());
       //! add the Et of the tower to deposits if it's not a vetoed; put into muonEnergy otherwise
-      if (doEcal) {
+      if (doEcal and !theUseEcalRecHitsFlag) {
         if (vetoTowerEcal)
           depEcal.addCandEnergy(etecal);
         else if (deltar0 <= theDR_Max)
           depEcal.addDeposit(towerDir, etecal);
       }
-      if (doHcal) {
+      if (doHcal and !theUseHcalRecHitsFlag) {
         if (vetoTowerHcal)
           depHcal.addCandEnergy(ethcal);
         else if (deltar0 <= theDR_Max)
           depHcal.addDeposit(towerDir, ethcal);
       }
-      if (doHOcal) {
+      if (doHOcal and !theUseHORecHitsFlag) {
         if (vetoTowerHOCal)
           depHOcal.addCandEnergy(ethocal);
         else if (deltar0 <= theDR_Max)

@@ -28,12 +28,17 @@
 #include "CondFormats/EcalObjects/interface/EcalPFRecHitThresholds.h"
 #include "CondFormats/DataRecord/interface/EcalPFRecHitThresholdsRcd.h"
 #include "CondFormats/DataRecord/interface/HcalPFCutsRcd.h"
+#include "CondFormats/HcalObjects/interface/HcalChannelQuality.h"
+#include "CondFormats/DataRecord/interface/HcalChannelQualityRcd.h"
 #include "CondTools/Hcal/interface/HcalPFCutsHandler.h"
 
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
+#include "Geometry/CaloTopology/interface/HcalTopology.h"
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "MagneticField/Engine/interface/MagneticField.h"
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
+#include "RecoLocalCalo/HcalRecAlgos/interface/HcalSeverityLevelComputer.h"
+#include "RecoLocalCalo/HcalRecAlgos/interface/HcalSeverityLevelComputerRcd.h"
 
 class TrackAssociatorParameters;
 class TrackDetectorAssociator;
@@ -63,7 +68,9 @@ namespace muonisolation {
 
   private:
     //! use towers or rec hits
-    bool theUseRecHitsFlag;
+    bool theUseEcalRecHitsFlag;
+    bool theUseHcalRecHitsFlag;
+    bool theUseHORecHitsFlag;
 
     //! Label of deposit -- suggest to set to "" (all info is in collection name anyways)
     std::string theDepositLabel;
@@ -79,6 +86,12 @@ namespace muonisolation {
     double theThreshold_E;
     double theThreshold_H;
     double theThreshold_HO;
+    //std::vector<double> theThresholds_eHB;
+    //std::vector<double> theThresholds_etHB;
+    int theMaxSeverityHB;
+    //std::vector<double> theThresholds_eHE;
+    //std::vector<double> theThresholds_etHE;
+    int theMaxSeverityHE;
 
     //! cone sizes inside which the Et (towers) are not counted
     double theDR_Veto_E;
@@ -122,6 +135,13 @@ namespace muonisolation {
     edm::ESGetToken<HcalPFCuts, HcalPFCutsRcd> hcalCutsToken_;
     bool hcalCutsFromDB_;
     HcalPFCuts* hcalCuts = nullptr;
+
+    edm::ESGetToken<HcalTopology, HcalRecNumberingRecord> hcalTopologyToken_;
+    edm::ESGetToken<HcalChannelQuality, HcalChannelQualityRcd> hcalChannelQualityToken_;
+    edm::ESGetToken<HcalSeverityLevelComputer, HcalSeverityLevelComputerRcd> hcalSevLvlComputerToken_;
+    /**HcalTopology* hcalTopology_;
+    HcalChannelQuality* hcalChStatus_;
+    HcalSeverityLevelComputer* hcalSevLvlComputer_;**/
 
     //! flag to turn on/off printing of a time report
     bool thePrintTimeReport;
