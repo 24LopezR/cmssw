@@ -135,6 +135,9 @@ namespace muonisolation {
     edm::ESGetToken<HcalTopology, HcalRecNumberingRecord> hcalTopologyToken_;
     edm::ESGetToken<HcalChannelQuality, HcalChannelQualityRcd> hcalChannelQualityToken_;
     edm::ESGetToken<HcalSeverityLevelComputer, HcalSeverityLevelComputerRcd> hcalSevLvlComputerToken_;
+    HcalTopology* hcalTopology_;
+    HcalChannelQuality* hcalChStatus_;
+    HcalSeverityLevelComputer* hcalSevLvlComputer_;
 
     //! flag to turn on/off printing of a time report
     bool thePrintTimeReport;
