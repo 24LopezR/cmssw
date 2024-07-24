@@ -75,15 +75,10 @@ CaloExtractorByAssociator::CaloExtractorByAssociator(const ParameterSet& par, ed
 
   ecalRecHitThresh_ = par.getParameter<bool>("EcalRecHitThresh");
   hcalCutsFromDB_ = par.getParameter<bool>("HcalCutsFromDB");
-  if (theUseEcalRecHitsFlag or theUseHcalRecHitsFlag or theUseHORecHitsFlag) {
-    caloGeomToken_ = iC.esConsumes();
-    if (ecalRecHitThresh_) {
-      ecalPFRechitThresholdsToken_ = iC.esConsumes();
-    }
-    if (hcalCutsFromDB_) {
-      hcalCutsToken_ = iC.esConsumes();
-    }
-  }
+
+  caloGeomToken_ = iC.esConsumes();
+  ecalPFRechitThresholdsToken_ = iC.esConsumes();
+  hcalCutsToken_ = iC.esConsumes();
   hcalTopologyToken_ = iC.esConsumes();
   hcalChannelQualityToken_ = iC.esConsumes(edm::ESInputTag("", "withTopo"));
   hcalSevLvlComputerToken_ = iC.esConsumes();
@@ -126,10 +121,8 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
   theService->update(eventSetup);
   theAssociator->setPropagator(&*(theService->propagator(thePropagatorName)));
 
-  if (ecalRecHitThresh_)
-    const EcalPFRecHitThresholds* ecalThresholds = &eventSetup.getData(ecalPFRechitThresholdsToken_);
-  if (hcalCutsFromDB_)
-    const HcalPFCuts* hcalCuts = &eventSetup.getData(hcalCutsToken_);
+  const EcalPFRecHitThresholds* ecalThresholds = &eventSetup.getData(ecalPFRechitThresholdsToken_);
+  const HcalPFCuts* hcalCuts = &eventSetup.getData(hcalCutsToken_);
   const HcalTopology* hcalTopology_ = &eventSetup.getData(hcalTopologyToken_);
   const HcalChannelQuality* hcalChStatus_ = &eventSetup.getData(hcalChannelQualityToken_);
   const HcalSeverityLevelComputer* hcalSevLvlComputer_ = &eventSetup.getData(hcalSevLvlComputerToken_);
