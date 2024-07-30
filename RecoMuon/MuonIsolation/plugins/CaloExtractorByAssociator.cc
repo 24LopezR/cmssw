@@ -191,7 +191,7 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       double cosTheta = 1. / cosh(eHitPos.eta());
       double energy = eHitCPtr->energy();
       double et = energy * cosTheta;
-      if (deltaR2 > std::max(dRMax_CandDep, theDR_Max))
+      if (deltaR2 > std::max(dRMax_CandDep * dRMax_CandDep, theDR_Max * theDR_Max))
         continue;
 
       if (ecalThresholds != nullptr) {  // use thresholds from rechit
@@ -205,7 +205,7 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
 
       bool vetoHit = false;
       //! first check if the hit is inside the veto cone by dR-alone
-      if (deltaR2 < theDR_Veto_E) {
+      if (deltaR2 < std::pow(theDR_Veto_E, 2)) {
         LogDebug("RecoMuon|CaloExtractorByAssociator") << " >>> Veto ECAL hit: Calo deltaR2= " << deltaR2;
         LogDebug("RecoMuon|CaloExtractorByAssociator")
             << " >>> Calo eta phi ethcal: " << eHitPos.eta() << " " << eHitPos.phi() << " " << et;
@@ -220,7 +220,7 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       }
 
       //check theDR_Max only here to keep vetoHits being added to the veto energy
-      if (deltaR2 > theDR_Max && !vetoHit)
+      if (deltaR2 > std::pow(theDR_Max, 2) && !vetoHit)
         continue;
 
       if (vetoHit) {
@@ -242,7 +242,7 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       double cosTheta = 1. / cosh(hHitPos.eta());
       double energy = hHitCPtr->energy();
       double et = energy * cosTheta;
-      if (deltaR2 > std::max(dRMax_CandDep, theDR_Max))
+      if (deltaR2 > std::max(dRMax_CandDep * dRMax_CandDep, theDR_Max * theDR_Max))
         continue;
 
       // check Hcal Cuts from DB
@@ -269,7 +269,7 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
 
       bool vetoHit = false;
       //! first check if the hit is inside the veto cone by dR-alone
-      if (deltaR2 < theDR_Veto_H) {
+      if (deltaR2 < std::pow(theDR_Veto_H, 2)) {
         LogDebug("RecoMuon|CaloExtractorByAssociator") << " >>> Veto HBHE hit: Calo deltaR2= " << deltaR2;
         LogDebug("RecoMuon|CaloExtractorByAssociator")
             << " >>> Calo eta phi ethcal: " << hHitPos.eta() << " " << hHitPos.phi() << " " << et;
@@ -284,7 +284,7 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       }
 
       //check theDR_Max only here to keep vetoHits being added to the veto energy
-      if (deltaR2 > theDR_Max && !vetoHit)
+      if (deltaR2 > std::pow(theDR_Max, 2) && !vetoHit)
         continue;
 
       if (vetoHit) {
@@ -306,13 +306,13 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       double cosTheta = 1. / cosh(hoHitPos.eta());
       double energy = hoHitCPtr->energy();
       double et = energy * cosTheta;
-      if (deltaR2 > std::max(dRMax_CandDep, theDR_Max) ||
+      if (deltaR2 > std::max(dRMax_CandDep * dRMax_CandDep, theDR_Max * theDR_Max) ||
           !(et > theThreshold_HO && energy > 3 * noiseRecHit(hoHitCPtr->detid())))
         continue;
 
       bool vetoHit = false;
       //! first check if the hit is inside the veto cone by dR-alone
-      if (deltaR2 < theDR_Veto_HO) {
+      if (deltaR2 < std::pow(theDR_Veto_HO, 2)) {
         LogDebug("RecoMuon|CaloExtractorByAssociator") << " >>> Veto HO hit: Calo deltaR2= " << deltaR2;
         LogDebug("RecoMuon|CaloExtractorByAssociator")
             << " >>> Calo eta phi ethcal: " << hoHitPos.eta() << " " << hoHitPos.phi() << " " << et;
@@ -327,7 +327,7 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       }
 
       //check theDR_Max only here to keep vetoHits being added to the veto energy
-      if (deltaR2 > theDR_Max && !vetoHit)
+      if (deltaR2 > std::pow(theDR_Max, 2) && !vetoHit)
         continue;
 
       if (vetoHit) {
@@ -344,7 +344,7 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
     for (; calCI != mInfo.towers.end(); ++calCI) {
       const CaloTower* calCPtr = *calCI;
       double deltaR2 = reco::deltaR2(muon, *calCPtr);
-      if (deltaR2 > std::max(dRMax_CandDep, theDR_Max))
+      if (deltaR2 > std::max(dRMax_CandDep * dRMax_CandDep, theDR_Max * theDR_Max))
         continue;
 
       //even more copy-pasting .. need to refactor
@@ -363,7 +363,7 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       bool vetoTowerEcal = false;
       double deltar2Ecal = reco::deltaR2(mInfo.trkGlobPosAtEcal, *calCPtr);
       //! first check if the tower is inside the veto cone by dR-alone
-      if (deltar2Ecal < theDR_Veto_E) {
+      if (deltar2Ecal < std::pow(theDR_Veto_E, 2)) {
         LogDebug("RecoMuon|CaloExtractorByAssociator") << " >>> Veto ecal tower: Calo deltaR= " << deltar2Ecal;
         LogDebug("RecoMuon|CaloExtractorByAssociator")
             << " >>> Calo eta phi ethcal: " << calCPtr->eta() << " " << calCPtr->phi() << " " << ethcal;
@@ -372,7 +372,7 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       bool vetoTowerHcal = false;
       double deltar2Hcal = reco::deltaR2(mInfo.trkGlobPosAtHcal, *calCPtr);
       //! first check if the tower is inside the veto cone by dR-alone
-      if (deltar2Hcal < theDR_Veto_H) {
+      if (deltar2Hcal < std::pow(theDR_Veto_H, 2)) {
         LogDebug("RecoMuon|CaloExtractorByAssociator") << " >>> Veto hcal tower: Calo deltaR= " << deltar2Hcal;
         LogDebug("RecoMuon|CaloExtractorByAssociator")
             << " >>> Calo eta phi ethcal: " << calCPtr->eta() << " " << calCPtr->phi() << " " << ethcal;
@@ -381,7 +381,7 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       bool vetoTowerHOCal = false;
       double deltar2HOcal = reco::deltaR2(mInfo.trkGlobPosAtHO, *calCPtr);
       //! first check if the tower is inside the veto cone by dR-alone
-      if (deltar2HOcal < theDR_Veto_HO) {
+      if (deltar2HOcal < std::pow(theDR_Veto_HO, 2)) {
         LogDebug("RecoMuon|CaloExtractorByAssociator") << " >>> Veto HO tower: Calo deltaR= " << deltar2HOcal;
         LogDebug("RecoMuon|CaloExtractorByAssociator")
             << " >>> Calo eta phi ethcal: " << calCPtr->eta() << " " << calCPtr->phi() << " " << ethcal;
@@ -400,7 +400,7 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
         }
       }
 
-      if (deltaR2 > theDR_Max && !(vetoTowerEcal || vetoTowerHcal || vetoTowerHOCal))
+      if (deltaR2 > std::pow(theDR_Max, 2) && !(vetoTowerEcal || vetoTowerHcal || vetoTowerHOCal))
         continue;
 
       reco::isodeposit::Direction towerDir(calCPtr->eta(), calCPtr->phi());
@@ -408,19 +408,19 @@ std::vector<IsoDeposit> CaloExtractorByAssociator::deposits(const Event& event,
       if (doEcal and !theUseEcalRecHitsFlag) {
         if (vetoTowerEcal)
           depEcal.addCandEnergy(etecal);
-        else if (deltaR2 <= theDR_Max)
+        else if (deltaR2 <= std::pow(theDR_Max, 2))
           depEcal.addDeposit(towerDir, etecal);
       }
       if (doHcal and !theUseHcalRecHitsFlag) {
         if (vetoTowerHcal)
           depHcal.addCandEnergy(ethcal);
-        else if (deltaR2 <= theDR_Max)
+        else if (deltaR2 <= std::pow(theDR_Max, 2))
           depHcal.addDeposit(towerDir, ethcal);
       }
       if (doHOcal and !theUseHORecHitsFlag) {
         if (vetoTowerHOCal)
           depHOcal.addCandEnergy(ethocal);
-        else if (deltaR2 <= theDR_Max)
+        else if (deltaR2 <= std::pow(theDR_Max, 2))
           depHOcal.addDeposit(towerDir, ethocal);
       }
     }
