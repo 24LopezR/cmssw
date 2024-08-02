@@ -57,6 +57,7 @@ private:
   double theDecLenCut;
   double maxZCentralCMS;
   int verbose;
+  int fParticle;
   LumiMonitorFilter *fLumiFilter;
   HepMC::GenEvent *evt_;
   math::XYZTLorentzVector *vtx_;

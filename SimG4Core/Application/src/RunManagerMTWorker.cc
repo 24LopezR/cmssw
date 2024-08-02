@@ -551,7 +551,8 @@ TmpSimEvent* RunManagerMTWorker::produce(const edm::Event& inpevt,
   // We have to do the per-thread initialization, and per-thread
   // per-run initialization here by ourselves.
 
-  edm::LogVerbatim("SimG4CoreApplication") << "RunManagerMTWorker::produce: start EventID=" << inpevt.id().event();
+  //edm::LogVerbatim("SimG4CoreApplication") << "RunManagerMTWorker::produce: start EventID=" << inpevt.id().event();
+  std::cout << "[RunManagerMTWorker::produce] start EventID=" << inpevt.id().event() << std::endl;
 
   assert(m_tls != nullptr and m_tls->threadInitialized);
   // Initialize run
@@ -574,6 +575,7 @@ TmpSimEvent* RunManagerMTWorker::produce(const edm::Event& inpevt,
   m_simEvent.setWeight(m_generator.eventWeight());
 
   if (m_generator.genVertex() != nullptr) {
+    std::cout << "[RunManagerMTWorker::produce] m_generator.genVertex() != nullptr. Setting genVertex = m_generator.genVertex()" << std::endl;
     auto genVertex = m_generator.genVertex();
     m_simEvent.collisionPoint(math::XYZTLorentzVectorD(genVertex->x() / CLHEP::cm,
                                                        genVertex->y() / CLHEP::cm,
@@ -586,16 +588,21 @@ TmpSimEvent* RunManagerMTWorker::produce(const edm::Event& inpevt,
         << " StreamID=" << inpevt.streamID() << " threadIndex=" << getThreadIndex();
 
   } else {
-    edm::LogVerbatim("SimG4CoreApplication")
-        << "RunManagerMTWorker::produce: start EventID=" << inpevt.id().event() << " StreamID=" << inpevt.streamID()
+    //edm::LogVerbatim("SimG4CoreApplication")
+    std::cout << "[RunManagerMTWorker::produce]"
+        << " Start EventID=" << inpevt.id().event() << " StreamID=" << inpevt.streamID()
         << " threadIndex=" << getThreadIndex() << " weight=" << m_simEvent.weight()
         << " Nprimary: " << m_tls->currentEvent->GetNumberOfPrimaryVertex() << " vertices and " << m_simEvent.nTracks()
-        << " particles";
+        << " particles" << std::endl;
     // process event
     if (m_UseG4EventManager) {
+      std::cout << "[RunManagerMTWorker::produce] START ProcessOneEvent(m_tls->currentEvent.get())" << std::endl;
       m_tls->kernel->GetEventManager()->ProcessOneEvent(m_tls->currentEvent.get());
+      std::cout << "[RunManagerMTWorker::produce] END   ProcessOneEvent(m_tls->currentEvent.get())" << std::endl;
     } else {
+      std::cout << "[RunManagerMTWorker::produce] START m_evtManager->ProcessOneEvent(m_tls->currentEvent.get())" << std::endl;
       m_evtManager->ProcessOneEvent(m_tls->currentEvent.get());
+      std::cout << "[RunManagerMTWorker::produce] END   m_evtManager->ProcessOneEvent(m_tls->currentEvent.get())" << std::endl;
     }
   }
 
@@ -651,7 +658,9 @@ G4Event* RunManagerMTWorker::generateEvent(const edm::Event& inpevt) {
   resetGenParticleId(inpevt);
 
   if (!m_nonBeam) {
+    std::cout << "[RunManagerMTWorker::generateEvent] START m_generator.HepMC2G4(HepMCEvt->GetEvent(), evt)" << std::endl;
     m_generator.HepMC2G4(HepMCEvt->GetEvent(), evt);
+    std::cout << "[RunManagerMTWorker::generateEvent] END   m_generator.HepMC2G4(HepMCEvt->GetEvent(), evt)" << std::endl;
     if (m_LHCTransport) {
       edm::Handle<edm::HepMCProduct> LHCMCEvt;
       inpevt.getByToken(m_LHCToken, LHCMCEvt);
