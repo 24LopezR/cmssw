@@ -17,6 +17,7 @@
 #include "G4UnitsTable.hh"
 
 #include <sstream>
+#include <algorithm>
 
 using namespace edm;
 
@@ -33,7 +34,7 @@ Generator::Generator(const ParameterSet &p)
       theMaxPCut(p.getParameter<double>("MaxPCut")),
       theEtaCutForHector(p.getParameter<double>("EtaCutForHector")),
       verbose(p.getUntrackedParameter<int>("Verbosity", 0)),
-      fParticle(p.getUntrackedParameter<int>("PARTICLE", 1000013)),
+      fParticleList(p.getUntrackedParameter<std::vector<int>>("AssignDaughterList", std::vector<int>(1000015))),
       fLumiFilter(nullptr),
       evt_(nullptr),
       vtx_(nullptr),
@@ -142,7 +143,7 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
 
   unsigned int ng4vtx = 0;
   unsigned int ng4par = 0;
-  std::cout << "[Generator::HepMC2G4] " << fParticle << std::endl;
+  //std::cout << "[Generator::HepMC2G4] " << fParticleList << std::endl;
   std::cout << "[Generator::HepMC2G4] Start vtx loop" << std::endl;
   for (HepMC::GenEvent::vertex_const_iterator vitr = evt->vertices_begin(); vitr != evt->vertices_end(); ++vitr) {
     // loop for vertex, is it a real vertex?
@@ -522,7 +523,8 @@ void Generator::particleAssignDaughters(G4PrimaryParticle *g4p, HepMC::GenPartic
           << "Assigning a " << (*vpdec)->pdg_id() << " as daughter of a " << vp->pdg_id() << " status=" << status;
     if (v) { std::cout << "      [Generator::particleAssignDaughters] Assigning a " << (*vpdec)->pdg_id() << " as daughter of a " << vp->pdg_id() << " status=" << status << std::endl; }
 
-    if ((status == 2 || (status == 23 && std::abs(vp->pdg_id()) == fParticle) || (status > 50 && status < 100)) &&
+    bool isInList = (std::find(fParticleList.begin(), fParticleList.end(), std::abs(vp->pdg_id())) != fParticleList.end());
+    if ((status == 2 || (status == 23 && isInList) || (status > 50 && status < 100)) &&
         (*vpdec)->end_vertex() != nullptr) {
       double x2 = (*vpdec)->end_vertex()->position().x();
       double y2 = (*vpdec)->end_vertex()->position().y();
