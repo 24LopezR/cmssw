@@ -256,6 +256,7 @@ g4SimHits = cms.EDProducer("OscarMTProducer",
         MaxPhiCut = cms.double(3.14159265359),  ## according to CMS conventions
         ApplyLumiMonitorCuts = cms.bool(False), ## primary for lumi monitors
         Verbosity = cms.untracked.int32(0),
+        AssignDaughterList = cms.untracked.vint32(1000006,2000006,1000011,1000013,1000015,2000011,2000013,2000015,1000612,1000622,1000632,1000642,1000652,1006113,1006211,1006213,1006223,1006311,1006313,1006321,1006323,1006333),
         FixG4Primary = cms.bool(False),
         PDGselection = cms.PSet(
             PDGfilterSel = cms.bool(False),        ## filter out unwanted particles

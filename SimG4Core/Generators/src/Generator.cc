@@ -34,6 +34,7 @@ Generator::Generator(const ParameterSet &p)
       theMaxPCut(p.getParameter<double>("MaxPCut")),
       theEtaCutForHector(p.getParameter<double>("EtaCutForHector")),
       verbose(p.getUntrackedParameter<int>("Verbosity", 0)),
+      fParticleList(p.getUntrackedParameter<std::vector<int>>("AssignDaughterList", std::vector<int>(1000015))),
       fLumiFilter(nullptr),
       evt_(nullptr),
       vtx_(nullptr),
@@ -366,7 +367,7 @@ void Generator::HepMC2G4(const HepMC::GenEvent *evt_orig, G4Event *g4evt) {
           // Decay chain outside the fiducial cylinder defined by theRDecLenCut
           // are used for Geant4 tracking with predefined decay channel
           // In the case of decay in vacuum particle is not tracked by Geant4
-        } else if (2 == status && x2 * x2 + y2 * y2 >= theDecRCut2 && std::abs(z2) < Z_hector) {
+        } else if (2 == status && x2 * x2 + y2 * y2 >= theDecRCut2 ) { //&& std::abs(z2) < Z_hector) {
           toBeAdded = true;
           if (verbose > 1)
             edm::LogVerbatim("SimG4CoreGenerator") << "GenParticle barcode = " << (*pitr)->barcode() << " passed case 2"
@@ -476,8 +477,9 @@ void Generator::particleAssignDaughters(G4PrimaryParticle *g4p, HepMC::GenPartic
       LogDebug("SimG4CoreGenerator::particleAssignDaughters")
           << "Assigning a " << (*vpdec)->pdg_id() << " as daughter of a " << vp->pdg_id() << " status=" << status;
 
+    bool isInList = (std::find(fParticleList.begin(), fParticleList.end(), std::abs(vp->pdg_id())) != fParticleList.end());
     bool checkStatus = fFixG4Primary
-                           ? ((status == 23 && std::abs(vp->pdg_id()) == 1000015) || (status > 50 && status < 100))
+                           ? ((status == 23 && isInList) || (status > 50 && status < 100))
                            : status > 3;
 
     if ((status == 2 || checkStatus) && (*vpdec)->end_vertex() != nullptr) {
