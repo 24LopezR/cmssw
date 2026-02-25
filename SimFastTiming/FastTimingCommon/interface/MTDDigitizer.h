@@ -24,6 +24,7 @@
 #include "SimGeneral/MixingModule/interface/PileUpEventPrincipal.h"
 
 #include "DataFormats/Math/interface/liblogintpack.h"
+#include "HeterogeneousCore/AlpakaInterface/interface/host.h"
 
 #include <vector>
 #include <unordered_map>
@@ -247,14 +248,19 @@ namespace mtd_digitizer {
 
   template <class Traits>
   void MTDDigitizer<Traits>::finalizeEvent(edm::Event& e, edm::EventSetup const& c, CLHEP::HepRandomEngine* hre) {
+    // Compiler instruction to save BTL and ETL digis in SoA format
     if (premixStage1_) {
       auto simResult = std::make_unique<PMTDSimAccumulator>();
       saveSimHitAccumulator(*simResult, simHitAccumulator_, premixStage1MinCharge_, premixStage1MaxCharge_);
       e.put(std::move(simResult), digiCollection_);
     } else {
+      typedef typename Traits::DigiCollectionSoA DigiCollectionSoA;
+      auto queue = cms::alpakatools::host();
       auto digiCollection = std::make_unique<DigiCollection>();
-      electronicsSim_.run(simHitAccumulator_, *digiCollection, hre);
+      auto digiCollectionSoA = std::make_unique<DigiCollectionSoA>(queue, simHitAccumulator_.size());
+      electronicsSim_.run(simHitAccumulator_, *digiCollection, *digiCollectionSoA, hre);
       e.put(std::move(digiCollection), digiCollection_);
+      e.put(std::move(digiCollectionSoA), digiCollectionSoA_);
     }
 
     //release memory for next event

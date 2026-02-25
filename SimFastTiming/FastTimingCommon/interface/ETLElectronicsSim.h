@@ -10,6 +10,7 @@
 #include "SimDataFormats/TrackingHit/interface/PSimHit.h"
 
 #include "DataFormats/FTLDigi/interface/FTLDigiCollections.h"
+#include "DataFormats/FTLDigiSoA/interface/ETLDigiHostCollection.h"
 #include "SimFastTiming/FastTimingCommon/interface/MTDDigitizerTypes.h"
 
 #include "Geometry/Records/interface/MTDDigiGeometryRecord.h"
@@ -34,12 +35,28 @@ public:
 
   void run(const mtd::MTDSimHitDataAccumulator& input, ETLDigiCollection& output, CLHEP::HepRandomEngine* hre) const;
 
+  void run(const mtd::MTDSimHitDataAccumulator& input,
+           ETLDigiCollection& output,
+           etldigi::ETLDigiHostCollection& outputSoA,
+           CLHEP::HepRandomEngine* hre) const;
+
   void runTrivialShaper(ETLDataFrame& dataFrame,
                         const mtd::MTDSimHitData& chargeColl,
                         const mtd::MTDSimHitData& toa1,
                         const mtd::MTDSimHitData& toa2,
                         const uint8_t row,
                         const uint8_t column) const;
+
+  bool checkValidHit(const ETLDataFrame& rawDataFrame) const;
+
+  void updateOutputSoA(etldigi::ETLDigiHostCollection& coll,
+                       int hitIndex,
+                       uint32_t rawId,
+                       const mtd::MTDSimHitData& chargeColl,
+                       const mtd::MTDSimHitData& toa,
+                       const mtd::MTDSimHitData& tot,
+                       const uint8_t row,
+                       const uint8_t col) const;
 
   void updateOutput(ETLDigiCollection& coll, const ETLDataFrame& rawDataFrame) const;
 

@@ -30,6 +30,7 @@ void ETLElectronicsSim::getEventSetup(const edm::EventSetup& evs) { geom_ = &evs
 
 void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
                             ETLDigiCollection& output,
+                            etldigi::ETLDigiHostCollection& outputSoA,
                             CLHEP::HepRandomEngine* hre) const {
   MTDSimHitData chargeColl, toa1, toa2, tot;
 
@@ -38,6 +39,7 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
   std::vector<double> fluence(1);
   std::vector<double> chOverMPV(1);
 
+  int validHitIndex = 0;
   for (MTDSimHitDataAccumulator::const_iterator it = input.begin(); it != input.end(); it++) {
     chargeColl.fill(0.f);
     toa1.fill(0.f);
@@ -121,8 +123,30 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
     // Run the shaper to create a new data frame
     ETLDataFrame rawDataFrame(it->first.detid_);
     runTrivialShaper(rawDataFrame, chargeColl, toa1, tot, it->first.row_, it->first.column_);
+
+    if (!checkValidHit(rawDataFrame)) {
+      continue;
+    }
+
     updateOutput(output, rawDataFrame);
+    updateOutputSoA(outputSoA,
+                    validHitIndex,
+                    it->first.detid_,
+                    chargeColl,
+                    toa1,
+                    tot,
+                    it->first.row_,
+                    it->first.column_);
+    validHitIndex++;
   }
+
+  // resize the output SoA collection to the number of valid hits
+  const auto& queue = cms::alpakatools::host();
+  etldigi::ETLDigiHostCollection newOutputSoA(queue, validHitIndex);
+  for (int idx = 0; idx < validHitIndex; ++idx) {
+    newOutputSoA.view()[idx] = outputSoA.view()[idx];
+  }
+  outputSoA = std::move(newOutputSoA);
 }
 
 void ETLElectronicsSim::runTrivialShaper(ETLDataFrame& dataFrame,
@@ -147,9 +171,9 @@ void ETLElectronicsSim::runTrivialShaper(ETLDataFrame& dataFrame,
   //set new ADCs. Notice that we are only interested in the first element of the array for the ETL
   for (int it = 0; it < (int)(chargeColl.size()); it++) {
     //brute force saturation, maybe could to better with an exponential like saturation
-    const uint32_t adc = std::min((uint32_t)std::floor(chargeColl[it] / adcLSB_MIP_), adcBitSaturation_);
-    const uint32_t tdc_time1 = std::min((uint32_t)std::floor(toa[it] / toaLSB_ns_), tdcBitSaturation_);
-    const uint32_t tdc_time2 = std::min((uint32_t)std::floor(tot[it] / toaLSB_ns_), tdcBitSaturation_);
+    const uint32_t adc = std::min(static_cast<uint32_t>(std::floor(chargeColl[it] / adcLSB_MIP_)), adcBitSaturation_);
+    const uint32_t tdc_time1 = std::min(static_cast<uint32_t>(std::floor(toa[it] / toaLSB_ns_)), tdcBitSaturation_);
+    const uint32_t tdc_time2 = std::min(static_cast<uint32_t>(std::floor(tot[it] / toaLSB_ns_)), tdcBitSaturation_);
     //If time over threshold is 0 the event is assumed to not pass the threshold
     bool thres = true;
     if (tdc_time2 == 0 || chargeColl[it] < adcThreshold_MIP_)
@@ -177,11 +201,7 @@ void ETLElectronicsSim::runTrivialShaper(ETLDataFrame& dataFrame,
 #endif
 }
 
-void ETLElectronicsSim::updateOutput(ETLDigiCollection& coll, const ETLDataFrame& rawDataFrame) const {
-  int itIdx(mtd_digitizer::kInTimeBX);
-  if (rawDataFrame.size() <= itIdx + 2)
-    return;
-
+bool ETLElectronicsSim::checkValidHit(const ETLDataFrame& rawDataFrame) const {
   ETLDataFrame dataFrame(rawDataFrame.id());
   dataFrame.resize(dfSIZE);
   bool putInEvent(false);
@@ -190,8 +210,32 @@ void ETLElectronicsSim::updateOutput(ETLDigiCollection& coll, const ETLDataFrame
     if (it == 2)
       putInEvent = rawDataFrame[itIdx - 2 + it].threshold();
   }
+  return putInEvent;
+}
 
-  if (putInEvent) {
-    coll.push_back(dataFrame);
-  }
+void ETLElectronicsSim::updateOutput(ETLDigiCollection& coll, const ETLDataFrame& rawDataFrame) const {
+  int itIdx(mtd_digitizer::kInTimeBX);
+  if (rawDataFrame.size() <= itIdx + 2)
+    return;
+
+  ETLDataFrame dataFrame(rawDataFrame.id());
+  dataFrame.resize(dfSIZE);
+  coll.push_back(rawDataFrame);
+}
+
+void ETLElectronicsSim::updateOutputSoA(etldigi::ETLDigiHostCollection& coll,
+                                        int hitIndex,
+                                        uint32_t rawId,
+                                        const mtd::MTDSimHitData& chargeColl,
+                                        const mtd::MTDSimHitData& toa,
+                                        const mtd::MTDSimHitData& tot,
+                                        const uint8_t row,
+                                        const uint8_t col) const {
+  uint8_t header = 0;    // header is always 0 in this implementation
+  uint8_t status = 0;    // status is always 0 in this implementation
+  uint8_t nHits = 0;
+  uint16_t cal = 0; 
+ 
+  etldigi::ETLDigiSoAView& etlDigiView = coll.view();
+  // TODO: Complete the implementation
 }

@@ -1,0 +1,16 @@
+#include <ostream>
+
+#include <fmt/format.h>
+
+#include "DataFormats/FTLDigiSoA/interface/ETLDigiSoA.h"
+
+namespace etldigi {
+
+  std::ostream& operator<<(std::ostream& out, ETLDigiSoA::View::const_element const& digi) {
+    out << "ETL Digi SoA rawId : " << digi.rawId() << ", header = " << digi.header()
+        << ", status = " << digi.status() << ", nHits = " << digi.nHits()
+        << ", column = " << digi.colID() << ", row = " << digi.rowID()
+        << ", ToA = " << digi.ToAdata() << ", Tot = " << digi.Totdata() << ", CAL = " << digi.CALdata();
+    return out;
+  }
+}  // namespace etldigi
