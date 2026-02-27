@@ -14,7 +14,7 @@ public:
   typedef BTLDigiCollection DigiCollection;
 
   // --- The BTL DIGI collection in SoA format
-  typedef btldigi::BTLDigiCollection DigiCollectionSoA;
+  typedef btldigi::BTLDigiHostCollection DigiCollectionSoA;
 
   // --- The BTL sensor response simulation for the bar geometry
   typedef BTLDeviceSim DeviceSim;
@@ -29,7 +29,7 @@ public:
   typedef ETLDigiCollection DigiCollection;
 
   // --- The ETL DIGI collection in SoA format
-  typedef etldigi::ETLDigiCollection DigiCollectionSoA;
+  typedef etldigi::ETLDigiHostCollection DigiCollectionSoA;
 
   // --- The ETL sensor response simulation
   typedef ETLDeviceSim DeviceSim;

@@ -77,11 +77,11 @@ private:
   // synthesized adc/tdc information
   const float adcSaturation_MIP_;
   const float adcLSB_MIP_;
-  const uint32_t adcBitSaturation_;
+  const uint16_t adcBitSaturation_;
   const float adcThreshold_MIP_;
   const float iThreshold_MIP_;
   const float toaLSB_ns_;
-  const uint32_t tdcBitSaturation_;
+  const uint16_t tdcBitSaturation_;
   const float referenceChargeColl_;
   const float noiseLevel_;
   const float sigmaDistorsion_;

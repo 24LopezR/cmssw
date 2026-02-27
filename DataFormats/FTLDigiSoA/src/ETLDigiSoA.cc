@@ -7,10 +7,10 @@
 namespace etldigi {
 
   std::ostream& operator<<(std::ostream& out, ETLDigiSoA::View::const_element const& digi) {
-    out << "ETL Digi SoA rawId : " << digi.rawId() << ", header = " << digi.header()
-        << ", status = " << digi.status() << ", nHits = " << digi.nHits()
+    out << "ETL Digi SoA rawId : " << digi.rawId() 
+        << ", header = " << digi.header() << ", status = " << digi.status()
         << ", column = " << digi.colID() << ", row = " << digi.rowID()
-        << ", ToA = " << digi.ToAdata() << ", Tot = " << digi.Totdata() << ", CAL = " << digi.CALdata();
+        << ", ToA = " << digi.ToAdata() << ", Tot = " << digi.ToTdata() << ", CAL = " << digi.CALdata();
     return out;
   }
 }  // namespace etldigi

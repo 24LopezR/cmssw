@@ -171,9 +171,9 @@ void ETLElectronicsSim::runTrivialShaper(ETLDataFrame& dataFrame,
   //set new ADCs. Notice that we are only interested in the first element of the array for the ETL
   for (int it = 0; it < (int)(chargeColl.size()); it++) {
     //brute force saturation, maybe could to better with an exponential like saturation
-    const uint32_t adc = std::min(static_cast<uint32_t>(std::floor(chargeColl[it] / adcLSB_MIP_)), adcBitSaturation_);
-    const uint32_t tdc_time1 = std::min(static_cast<uint32_t>(std::floor(toa[it] / toaLSB_ns_)), tdcBitSaturation_);
-    const uint32_t tdc_time2 = std::min(static_cast<uint32_t>(std::floor(tot[it] / toaLSB_ns_)), tdcBitSaturation_);
+    const uint16_t adc = std::min(static_cast<uint16_t>(std::floor(chargeColl[it] / adcLSB_MIP_)), adcBitSaturation_);
+    const uint16_t tdc_time1 = std::min(static_cast<uint16_t>(std::floor(toa[it] / toaLSB_ns_)), tdcBitSaturation_);
+    const uint16_t tdc_time2 = std::min(static_cast<uint16_t>(std::floor(tot[it] / toaLSB_ns_)), tdcBitSaturation_);
     //If time over threshold is 0 the event is assumed to not pass the threshold
     bool thres = true;
     if (tdc_time2 == 0 || chargeColl[it] < adcThreshold_MIP_)
@@ -202,6 +202,7 @@ void ETLElectronicsSim::runTrivialShaper(ETLDataFrame& dataFrame,
 }
 
 bool ETLElectronicsSim::checkValidHit(const ETLDataFrame& rawDataFrame) const {
+  int itIdx(mtd_digitizer::kInTimeBX);
   ETLDataFrame dataFrame(rawDataFrame.id());
   dataFrame.resize(dfSIZE);
   bool putInEvent(false);
@@ -214,10 +215,6 @@ bool ETLElectronicsSim::checkValidHit(const ETLDataFrame& rawDataFrame) const {
 }
 
 void ETLElectronicsSim::updateOutput(ETLDigiCollection& coll, const ETLDataFrame& rawDataFrame) const {
-  int itIdx(mtd_digitizer::kInTimeBX);
-  if (rawDataFrame.size() <= itIdx + 2)
-    return;
-
   ETLDataFrame dataFrame(rawDataFrame.id());
   dataFrame.resize(dfSIZE);
   coll.push_back(rawDataFrame);
@@ -233,9 +230,19 @@ void ETLElectronicsSim::updateOutputSoA(etldigi::ETLDigiHostCollection& coll,
                                         const uint8_t col) const {
   uint8_t header = 0;    // header is always 0 in this implementation
   uint8_t status = 0;    // status is always 0 in this implementation
-  uint8_t nHits = 0;
-  uint16_t cal = 0; 
+  uint16_t adc = std::min(static_cast<uint16_t>(std::floor(chargeColl[0] / adcLSB_MIP_)), adcBitSaturation_);
+  uint16_t tdc_time1 = std::min(static_cast<uint16_t>(std::floor(toa[0] / toaLSB_ns_)), tdcBitSaturation_);
+  uint16_t tdc_time2 = std::min(static_cast<uint16_t>(std::floor(tot[0] / toaLSB_ns_)), tdcBitSaturation_);
  
   etldigi::ETLDigiSoAView& etlDigiView = coll.view();
-  // TODO: Complete the implementation
+  etldigi::setDigi(etlDigiView,
+                   hitIndex,
+                   rawId,
+                   header,
+                   status,
+                   col,
+                   row,
+                   tdc_time1,
+                   tdc_time2,
+                   adc);
 }
