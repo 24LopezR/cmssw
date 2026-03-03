@@ -255,9 +255,8 @@ namespace mtd_digitizer {
       e.put(std::move(simResult), digiCollection_);
     } else {
       typedef typename Traits::DigiCollectionSoA DigiCollectionSoA;
-      auto queue = cms::alpakatools::host();
       auto digiCollection = std::make_unique<DigiCollection>();
-      auto digiCollectionSoA = std::make_unique<DigiCollectionSoA>(queue, simHitAccumulator_.size());
+      auto digiCollectionSoA = std::make_unique<DigiCollectionSoA>(cms::alpakatools::host(), simHitAccumulator_.size());
       electronicsSim_.run(simHitAccumulator_, *digiCollection, *digiCollectionSoA, hre);
       e.put(std::move(digiCollection), digiCollection_);
       e.put(std::move(digiCollectionSoA), digiCollectionSoA_);

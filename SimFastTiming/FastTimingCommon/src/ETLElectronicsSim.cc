@@ -141,8 +141,7 @@ void ETLElectronicsSim::run(const mtd::MTDSimHitDataAccumulator& input,
   }
 
   // resize the output SoA collection to the number of valid hits
-  const auto& queue = cms::alpakatools::host();
-  etldigi::ETLDigiHostCollection newOutputSoA(queue, validHitIndex);
+  etldigi::ETLDigiHostCollection newOutputSoA(cms::alpakatools::host(), validHitIndex);
   for (int idx = 0; idx < validHitIndex; ++idx) {
     newOutputSoA.view()[idx] = outputSoA.view()[idx];
   }

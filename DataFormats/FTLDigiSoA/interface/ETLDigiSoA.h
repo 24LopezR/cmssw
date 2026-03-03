@@ -28,28 +28,28 @@ namespace etldigi {
   ALPAKA_FN_HOST_ACC inline uint32_t rawId(const ETLDigiSoAConstView &etlDigi, int32_t i) {
     return (etlDigi[i].rawId());
   }
-  ALPAKA_FN_HOST_ACC inline uint8_t header(const ETLDigiSoAConstView &etlDigi, int8_t i) {
+  ALPAKA_FN_HOST_ACC inline uint8_t header(const ETLDigiSoAConstView &etlDigi, int32_t i) {
     return (etlDigi[i].header());
   }
-  ALPAKA_FN_HOST_ACC inline uint8_t status(const ETLDigiSoAConstView &etlDigi, int8_t i) {
+  ALPAKA_FN_HOST_ACC inline uint8_t status(const ETLDigiSoAConstView &etlDigi, int32_t i) {
     return (etlDigi[i].status());
   }
-  ALPAKA_FN_HOST_ACC inline uint8_t colID(const ETLDigiSoAConstView &etlDigi, int8_t i) {
+  ALPAKA_FN_HOST_ACC inline uint8_t colID(const ETLDigiSoAConstView &etlDigi, int32_t i) {
     return (etlDigi[i].colID());
   }
-  ALPAKA_FN_HOST_ACC inline uint8_t rowID(const ETLDigiSoAConstView &etlDigi, int8_t i) {
+  ALPAKA_FN_HOST_ACC inline uint8_t rowID(const ETLDigiSoAConstView &etlDigi, int32_t i) {
     return (etlDigi[i].rowID());
   }
-  ALPAKA_FN_HOST_ACC inline uint16_t ToAdata(const ETLDigiSoAConstView &etlDigi, int8_t i) {
+  ALPAKA_FN_HOST_ACC inline uint16_t ToAdata(const ETLDigiSoAConstView &etlDigi, int32_t i) {
     return (etlDigi[i].ToAdata());
   }
-  ALPAKA_FN_HOST_ACC inline uint16_t ToTdata(const ETLDigiSoAConstView &etlDigi, int8_t i) {
+  ALPAKA_FN_HOST_ACC inline uint16_t ToTdata(const ETLDigiSoAConstView &etlDigi, int32_t i) {
     return (etlDigi[i].ToTdata());
   }
-  ALPAKA_FN_HOST_ACC inline uint16_t CALdata(const ETLDigiSoAConstView &etlDigi, int8_t i) {
+  ALPAKA_FN_HOST_ACC inline uint16_t CALdata(const ETLDigiSoAConstView &etlDigi, int32_t i) {
     return (etlDigi[i].CALdata());
   }
-  ALPAKA_FN_HOST_ACC inline uint16_t charge(const ETLDigiSoAConstView &etlDigi, int8_t i) {
+  ALPAKA_FN_HOST_ACC inline uint16_t charge(const ETLDigiSoAConstView &etlDigi, int32_t i) {
     return (etlDigi[i].charge());
   }
 
