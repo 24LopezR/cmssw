@@ -230,6 +230,7 @@ void ETLElectronicsSim::updateOutputSoA(etldigi::ETLDigiHostCollection& coll,
                                         const uint8_t col) const {
   uint8_t header = 0;    // header is always 0 in this implementation
   uint8_t status = 0;    // status is always 0 in this implementation
+  uint8_t cal_code = 0;  // CAL code is always 0 in this implementation
   uint16_t adc = std::min(static_cast<uint16_t>(std::floor(chargeColl[0] / adcLSB_MIP_)), adcBitSaturation_);
   uint16_t tdc_time1 = std::min(static_cast<uint16_t>(std::floor(toa[0] / toaLSB_ns_)), tdcBitSaturation_);
   uint16_t tdc_time2 = std::min(static_cast<uint16_t>(std::floor(tot[0] / toaLSB_ns_)), tdcBitSaturation_);
@@ -244,5 +245,6 @@ void ETLElectronicsSim::updateOutputSoA(etldigi::ETLDigiHostCollection& coll,
                    row,
                    tdc_time1,
                    tdc_time2,
+                   cal_code,
                    adc);
 }

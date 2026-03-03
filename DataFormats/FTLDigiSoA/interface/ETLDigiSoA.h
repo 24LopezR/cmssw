@@ -13,9 +13,10 @@ namespace etldigi {
                       SOA_COLUMN(uint8_t,  status),    // status of the ETROC
                       SOA_COLUMN(uint8_t,  colID),     // ETROC column ID
                       SOA_COLUMN(uint8_t,  rowID),     // ETROC row ID
-                      SOA_COLUMN(uint16_t, ToAdata),    // ToA                      
-                      SOA_COLUMN(uint16_t, ToTdata),    // ToT                      
-                      SOA_COLUMN(uint16_t, CALdata))    // CAL                      
+                      SOA_COLUMN(uint16_t, ToAdata),   // ToA
+                      SOA_COLUMN(uint16_t, ToTdata),   // ToT
+                      SOA_COLUMN(uint16_t, CALdata),   // CAL code
+                      SOA_COLUMN(uint16_t, charge))    // Collected charge
 
   using ETLDigiSoA = ETLDigiSoALayout<>;
   using ETLDigiSoAView = ETLDigiSoA::View;
@@ -48,6 +49,9 @@ namespace etldigi {
   ALPAKA_FN_HOST_ACC inline uint16_t CALdata(const ETLDigiSoAConstView &etlDigi, int8_t i) {
     return (etlDigi[i].CALdata());
   }
+  ALPAKA_FN_HOST_ACC inline uint16_t charge(const ETLDigiSoAConstView &etlDigi, int8_t i) {
+    return (etlDigi[i].charge());
+  }
 
   // Setters
   ALPAKA_FN_HOST_ACC inline void rawId(ETLDigiSoA::View &etlDigi, int32_t i, uint32_t value) {
@@ -74,6 +78,9 @@ namespace etldigi {
   ALPAKA_FN_HOST_ACC inline void CALdata(ETLDigiSoA::View &etlDigi, int32_t i, uint16_t value) {
     etlDigi[i].CALdata() = value;
   }
+  ALPAKA_FN_HOST_ACC inline void charge(ETLDigiSoA::View &etlDigi, int32_t i, uint16_t value) {
+    etlDigi[i].charge() = value;
+  }
   ALPAKA_FN_HOST_ACC inline void setDigi(ETLDigiSoA::View &etlDigi,
                                          int32_t i,
                                          uint32_t rawId_val,
@@ -83,7 +90,8 @@ namespace etldigi {
                                          uint8_t rowID_val,
                                          uint16_t ToAdata_val,
                                          uint16_t ToTdata_val,
-                                         uint16_t CALdata_val) {
+                                         uint16_t CALdata_val,
+                                         uint16_t charge_val) {
     etlDigi[i].rawId()   = rawId_val;
     etlDigi[i].header()  = header_val;
     etlDigi[i].status()  = status_val;
@@ -92,6 +100,7 @@ namespace etldigi {
     etlDigi[i].ToAdata() = ToAdata_val;
     etlDigi[i].ToTdata() = ToTdata_val;
     etlDigi[i].CALdata() = CALdata_val;
+    etlDigi[i].charge()  = charge_val;
   }
 
 }  // namespace etldigi
