@@ -10,8 +10,7 @@ namespace etldigi {
     out << "ETL Digi SoA rawId : " << digi.rawId() 
         << ", header = " << digi.header() << ", status = " << digi.status()
         << ", column = " << digi.colID() << ", row = " << digi.rowID()
-        << ", ToA = " << digi.ToAdata() << ", Tot = " << digi.ToTdata() << ", CAL = " << digi.CALdata()
-        << ", charge = " << digi.charge();
+        << ", ToA = " << digi.ToAdata() << ", ToT = " << digi.ToTdata() << ", CAL = " << digi.CALdata();
     return out;
   }
 }  // namespace etldigi

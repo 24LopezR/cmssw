@@ -177,6 +177,11 @@ void ETLElectronicsSim::runTrivialShaper(ETLDataFrame& dataFrame,
     bool thres = true;
     if (tdc_time2 == 0 || chargeColl[it] < adcThreshold_MIP_)
       thres = false;
+    if (thresh) {
+      std::cout << "[ETLElectronicsSim::runTrivialShaper] it = " << it << std::endl;
+      std::cout << "                                      ToA [ns] = " << toa[it] << ", ToA [TDC counts] = " << tdc_time1 << std::endl;
+      std::cout << "                                      ToT [ns] = " << tot[it] << ", ToT [TDC counts] = " << tdc_time2 << std::endl;
+    }
 
     ETLSample newSample;
     newSample.set(thres, false, tdc_time1, tdc_time2, adc, row, col);
@@ -230,9 +235,17 @@ void ETLElectronicsSim::updateOutputSoA(etldigi::ETLDigiHostCollection& coll,
   uint8_t header = 0;    // header is always 0 in this implementation
   uint8_t status = 0;    // status is always 0 in this implementation
   uint8_t cal_code = 0;  // CAL code is always 0 in this implementation
-  uint16_t adc = std::min(static_cast<uint16_t>(std::floor(chargeColl[0] / adcLSB_MIP_)), adcBitSaturation_);
   uint16_t tdc_time1 = std::min(static_cast<uint16_t>(std::floor(toa[0] / toaLSB_ns_)), tdcBitSaturation_);
   uint16_t tdc_time2 = std::min(static_cast<uint16_t>(std::floor(tot[0] / toaLSB_ns_)), tdcBitSaturation_);
+  //If time over threshold is 0 the event is assumed to not pass the threshold
+  bool thres = true;
+  if (tdc_time2 == 0 || chargeColl[it] < adcThreshold_MIP_)
+    thres = false;
+  if (thresh) {
+    std::cout << "[ETLElectronicsSim::updateOutputSoA] hitIndex = " << hitIndex << std::endl;
+    std::cout << "                                     ToA [ns] = " << toa[0] << ", ToA [TDC counts] = " << tdc_time1 << std::endl;
+    std::cout << "                                     ToT [ns] = " << tot[0] << ", ToT [TDC counts] = " << tdc_time2 << std::endl;
+  }
  
   etldigi::ETLDigiSoAView& etlDigiView = coll.view();
   etldigi::setDigi(etlDigiView,
@@ -244,6 +257,5 @@ void ETLElectronicsSim::updateOutputSoA(etldigi::ETLDigiHostCollection& coll,
                    row,
                    tdc_time1,
                    tdc_time2,
-                   cal_code,
-                   adc);
+                   cal_code);
 }

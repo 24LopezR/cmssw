@@ -6,17 +6,15 @@
 #include "DataFormats/Portable/interface/alpaka/PortableCollection.h"
 #include "HeterogeneousCore/AlpakaInterface/interface/config.h"
 
-namespace ALPAKA_ACCELERATOR_NAMESPACE::etldigi {
+namespace ALPAKA_ACCELERATOR_NAMESPACE::btldigi {
 
-  // Make the names from the top-level etldigi namespace visible for unqualified lookup
+  // Make the names from the top-level btldigi namespace visible for unqualified lookup
   // inside the ALPAKA_ACCELERATOR_NAMESPACE::etldigi namespace.
-  using namespace ::etldigi;
-
-  using ETLDigiDeviceCollection = PortableCollection<ETLDigiSoA>;
+  using ETLDigiDeviceCollection = PortableCollection<::btldigi::ETLDigiSoA>;
 
 }  // namespace ALPAKA_ACCELERATOR_NAMESPACE::etldigi
 
 // Check that the portable device collection for the host device is the same as the portable host collection.
 ASSERT_DEVICE_MATCHES_HOST_COLLECTION(etldigi::ETLDigiDeviceCollection, etldigi::ETLDigiHostCollection);
 
-#endif  // DataFormats_FTLDigi_interface_alpaka_ETLDigiDeviceCollection_h
+#endif  // DataFormats_FTLDigiSoA_interface_alpaka_ETLDigiDeviceCollection_h
